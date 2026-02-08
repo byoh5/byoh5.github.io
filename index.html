@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>구구단 퀴즈 놀이터</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="app">
+      <section class="hero">
+        <div class="badge" data-i18n="badge">오늘의 구구단</div>
+        <h1 data-i18n="title">구구단 퀴즈 놀이터</h1>
+        <p data-i18n="subtitle">짧고 재미있는 문제로 2~9단을 자연스럽게 익혀요. 맞히면 별이 쌓여요!</p>
+      </section>
+
+      <section class="panel">
+        <div class="controls">
+          <div class="control">
+            <label data-i18n="languageLabel">언어</label>
+            <select id="languageSelect" class="select">
+              <option value="ko">한국어</option>
+              <option value="en">English</option>
+              <option value="zh">中文</option>
+              <option value="ja">日本語</option>
+              <option value="es">Español</option>
+              <option value="fr">Français</option>
+              <option value="de">Deutsch</option>
+              <option value="pt">Português</option>
+              <option value="vi">Tiếng Việt</option>
+              <option value="th">ไทย</option>
+              <option value="id">Bahasa Indonesia</option>
+            </select>
+          </div>
+          <div class="control">
+            <label data-i18n="danLabel">연습할 단</label>
+            <div class="chips" id="danChips"></div>
+            <label class="inline-toggle">
+              <input type="checkbox" id="extendToggle" />
+              <span data-i18n="extendLabel">20단까지 확장</span>
+            </label>
+          </div>
+          <div class="control">
+            <label data-i18n="styleLabel">문제 스타일</label>
+            <div class="toggle" role="tablist">
+              <button class="toggle-btn active" data-mode="mixed" data-i18n="modeMixed">섞어서</button>
+              <button class="toggle-btn" data-mode="sequence" data-i18n="modeSequence">순서대로</button>
+            </div>
+          </div>
+          <div class="control">
+            <label data-i18n="sessionLabel">학습 모드</label>
+            <div class="toggle" role="tablist">
+              <button class="toggle-btn active" data-session="normal" data-i18n="sessionNormal">기본</button>
+              <button class="toggle-btn" data-session="challenge" data-i18n="sessionChallenge">도전</button>
+            </div>
+          </div>
+          <div class="control" id="challengeControl">
+            <label data-i18n="timeLimitLabel">도전 시간 제한</label>
+            <div class="range">
+              <input id="timeLimitRange" type="range" min="1" max="5" value="3" />
+              <span id="timeLimitValue">3초</span>
+            </div>
+            <p class="small" data-i18n="timeLimitHelp">도전 모드에서는 문제당 제한 시간 안에 답해야 해요.</p>
+          </div>
+          <div class="control">
+            <label data-i18n="countLabel">문제 수</label>
+            <div class="range">
+              <input id="countRange" type="range" min="5" max="20" value="10" />
+              <span id="countValue">10</span>
+            </div>
+          </div>
+          <div class="control">
+            <label data-i18n="ttsLabel">문제 읽어주기</label>
+            <div class="tts-controls">
+              <label class="inline-toggle">
+                <input type="checkbox" id="ttsToggle" />
+                <span data-i18n="ttsAuto">자동 읽기</span>
+              </label>
+              <button id="ttsButton" class="ghost small" data-i18n="ttsPlay">지금 읽기</button>
+            </div>
+            <div class="tts-controls">
+              <select id="ttsVoiceSelect" class="select" aria-label="TTS Voice"></select>
+            </div>
+            <p class="small" data-i18n="ttsHelp">현재 언어로 문제를 읽어줘요.</p>
+          </div>
+        </div>
+
+        <div class="quiz">
+          <div class="status">
+            <div class="hearts" id="hearts"></div>
+            <div class="score"><span data-i18n="starsLabel">별</span> <span id="stars">0</span><span data-i18n="starsSuffix">개</span></div>
+          </div>
+
+          <div class="card" id="card">
+            <div class="card-top">
+              <span id="progress">1 / 10</span>
+              <span id="timer">00:00</span>
+            </div>
+            <div class="question" id="question">2 × 3 = ?</div>
+            <div class="question-tts" id="questionTts"></div>
+            <div class="answers" id="answers"></div>
+            <div class="feedback" id="feedback"></div>
+            <div class="actions">
+              <button id="skipBtn" class="ghost" data-i18n="skipBtn">모르면 넘어가기</button>
+              <button id="nextBtn" class="primary" disabled data-i18n="nextBtn">다음 문제</button>
+            </div>
+          </div>
+
+          <div class="result" id="result">
+            <h2 data-i18n="resultTitle">오늘의 결과</h2>
+            <p><span id="resultStars">0</span><span data-i18n="resultStarsSuffix">개의 별을 모았어요!</span></p>
+            <p class="small"><span data-i18n="resultRateLabel">정답률</span> <span id="resultRate">0</span>% · <span data-i18n="resultTimeLabel">걸린 시간</span> <span id="resultTime">00:00</span></p>
+            <div class="result-actions">
+              <button id="restartBtn" class="primary" data-i18n="restartBtn">다시 도전</button>
+              <button id="reviewBtn" class="ghost" data-i18n="reviewBtn">틀린 문제 보기</button>
+            </div>
+            <div class="review" id="reviewList"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="history">
+        <div class="history-card">
+          <div class="history-header">
+            <h2 data-i18n="historyTitle">학습 이력</h2>
+            <div class="history-actions">
+              <button id="exportHistoryBtn" class="ghost small" data-i18n="exportBtn">JSON 저장</button>
+              <button id="clearHistoryBtn" class="ghost small" data-i18n="clearBtn">기록 삭제</button>
+            </div>
+          </div>
+          <p class="small" data-i18n="historyHelp">최근 30회 기록을 저장하고, 성장 그래프를 보여줘요.</p>
+          <canvas id="historyChart" width="900" height="260" aria-label="정답률 그래프"></canvas>
+        </div>
+
+        <div class="history-card">
+          <h3 data-i18n="recentTitle">최근 기록</h3>
+          <div class="history-list" id="historyList"></div>
+        </div>
+
+        <div class="history-card">
+          <h3 data-i18n="wrongTitle">자주 틀리는 문제</h3>
+          <div class="history-list" id="wrongList"></div>
+        </div>
+
+        <div class="history-card">
+          <h3 data-i18n="challengeReportTitle">챌린지 모드 리포트</h3>
+          <p class="small" id="challengeSummary" data-i18n="challengeEmpty">도전 모드 기록이 아직 없어요.</p>
+          <div class="history-list" id="challengeWrongList"></div>
+        </div>
+      </section>
+    </main>
+
+    <div class="bg-shape shape-1"></div>
+    <div class="bg-shape shape-2"></div>
+    <div class="bg-shape shape-3"></div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
