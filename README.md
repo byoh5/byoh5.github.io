@@ -18,6 +18,10 @@
 
 > 로컬 서버 없이 파일만으로도 동작합니다.
 
+## 배포( GitHub Pages )
+- 이 프로젝트는 `byoh5/99`가 아니라 `byoh5.github.io` 저장소의 루트에 올려야 합니다.
+- 즉, `byoh5.github.io` 리포지토리의 최상위에 `index.html`, `style.css`, `script.js`를 배치하세요.
+
 ## 학습 이력 저장
 - `localStorage`에 최근 30회 기록 저장
 - 내보내기 버튼으로 `gugudan-history.json` 다운로드
