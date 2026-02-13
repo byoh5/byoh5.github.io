@@ -8,6 +8,7 @@ const starsEl = document.getElementById("stars");
 const heartsEl = document.getElementById("hearts");
 const nextBtn = document.getElementById("nextBtn");
 const skipBtn = document.getElementById("skipBtn");
+const pauseBtn = document.getElementById("pauseBtn");
 const countRange = document.getElementById("countRange");
 const countValue = document.getElementById("countValue");
 const toggleBtns = document.querySelectorAll(".toggle-btn");
@@ -29,18 +30,18 @@ const challengeWrongList = document.getElementById("challengeWrongList");
 const challengeSummary = document.getElementById("challengeSummary");
 const historyChart = document.getElementById("historyChart");
 const clearHistoryBtn = document.getElementById("clearHistoryBtn");
-const exportHistoryBtn = document.getElementById("exportHistoryBtn");
 const languageSelect = document.getElementById("languageSelect");
 const extendToggle = document.getElementById("extendToggle");
 const ttsToggle = document.getElementById("ttsToggle");
 const ttsButton = document.getElementById("ttsButton");
 const questionTts = document.getElementById("questionTts");
 const ttsVoiceSelect = document.getElementById("ttsVoiceSelect");
+const startBtn = document.getElementById("startBtn");
 
 const state = {
   mode: "mixed",
   session: "normal",
-  total: 10,
+  total: 20,
   current: 0,
   correct: 0,
   stars: 0,
@@ -60,6 +61,13 @@ const state = {
   ttsEnabled: false,
   speechReady: false,
   voices: [],
+  hasStarted: false,
+  isPaused: false,
+  elapsedMs: 0,
+  countdownRemainingMs: null,
+  autoNextTimer: null,
+  pendingAutoNext: false,
+  pauseSnapshot: null,
 };
 
 const HISTORY_KEY = "gugudan-history-v1";
@@ -74,7 +82,8 @@ const I18N = {
   ko: {
     badge: "오늘의 구구단",
     title: "구구단 퀴즈 놀이터",
-    subtitle: "짧고 재미있는 문제로 2~9단을 자연스럽게 익혀요. 맞히면 별이 쌓여요!",
+    subtitle: "새로운 시대의 구구단 학습법, 게임처럼 몰입하고 기록으로 성장해요!",
+    heroStory: "우리 아이의 구구단 공부를 위해 아빠가 AI로 직접 만들었어요.\n전 세계 모든 아이들이 구구단을 쉽게 외울 수 있도록요.",
     languageLabel: "언어",
     danLabel: "연습할 단",
     extendLabel: "20단까지 확장",
@@ -88,11 +97,21 @@ const I18N = {
     sessionLabel: "학습 모드",
     sessionNormal: "기본",
     sessionChallenge: "도전",
+    sessionWrong: "오답 집중",
     timeLimitLabel: "도전 시간 제한",
     timeLimitHelp: "도전 모드에서는 문제당 제한 시간 안에 답해야 해요.",
     countLabel: "문제 수",
     starsLabel: "별",
     starsSuffix: "개",
+    startBtn: "학습 시작",
+    startBtnRestart: "학습 다시 시작",
+    startHelp: "설정을 고른 뒤 위의 학습 시작 버튼을 눌러 주세요.",
+    wrongPracticeHelp: "기록된 오답으로 집중 학습을 할 수 있어요. 학습 시작 버튼을 눌러 주세요.",
+    wrongPracticeEmpty: "기록된 오답이 없어요. 기본 모드로 먼저 학습해 주세요.",
+    pauseBtn: "잠시 멈춤",
+    resumeBtn: "이어서 학습",
+    paused: "일시정지됨. 이어서 학습 버튼을 눌러 계속하세요.",
+    ttsNoVoice: "TTS 음성이 없습니다",
     skipBtn: "모르면 넘어가기",
     nextBtn: "다음 문제",
     resultTitle: "오늘의 결과",
@@ -102,7 +121,6 @@ const I18N = {
     restartBtn: "다시 도전",
     reviewBtn: "틀린 문제 보기",
     historyTitle: "학습 이력",
-    exportBtn: "JSON 저장",
     clearBtn: "기록 삭제",
     historyHelp: "최근 30회 기록을 저장하고, 성장 그래프를 보여줘요.",
     recentTitle: "최근 기록",
@@ -118,6 +136,7 @@ const I18N = {
     correctRateMeta: "정답률",
     normalMeta: "기본",
     challengeMeta: "도전",
+    wrongMeta: "오답 집중",
     average: "평균",
     limit: "제한",
     seconds: "초",
@@ -129,13 +148,18 @@ const I18N = {
     wrongCount: "{count}번",
     wrongCountFull: "{count}번 틀림",
     danSuffix: "단",
+    footerAbout: "사이트 소개",
+    footerPrivacy: "개인정보처리방침",
+    footerContact: "문의하기",
+    chartAria: "정답률 그래프",
     applause: ["멋져요!", "천재네!", "완벽해요!", "짱이에요!", "정답! 잘했어요!"],
     gentle: ["괜찮아요, 다시!", "조금만 더!", "다음엔 맞힐 수 있어요!"],
   },
   en: {
     badge: "Today's Times Tables",
     title: "Times Table Quiz Playground",
-    subtitle: "Quick, fun questions to master 2–9 times tables. Earn stars when you’re right!",
+    subtitle: "A new-era way to master times tables: game-like focus powered by progress data.",
+    heroStory: "Made directly with AI by a dad to help his own child study times tables, so kids everywhere can learn them with ease.",
     languageLabel: "Language",
     danLabel: "Tables to Practice",
     extendLabel: "Extend to 20",
@@ -149,11 +173,21 @@ const I18N = {
     sessionLabel: "Learning Mode",
     sessionNormal: "Normal",
     sessionChallenge: "Challenge",
+    sessionWrong: "Mistake Focus",
     timeLimitLabel: "Challenge Time Limit",
     timeLimitHelp: "Answer each question within the time limit in Challenge mode.",
     countLabel: "Number of Questions",
     starsLabel: "Stars",
     starsSuffix: "",
+    startBtn: "Start Learning",
+    startBtnRestart: "Restart Learning",
+    startHelp: "Choose settings, then click Start Learning.",
+    wrongPracticeHelp: "Practice only with frequently missed questions from your history. Click Start Learning.",
+    wrongPracticeEmpty: "No missed-question history yet. Complete a Normal session first.",
+    pauseBtn: "Pause",
+    resumeBtn: "Resume",
+    paused: "Paused. Click resume to continue.",
+    ttsNoVoice: "No TTS voice available",
     skipBtn: "Skip",
     nextBtn: "Next",
     resultTitle: "Today's Result",
@@ -163,7 +197,6 @@ const I18N = {
     restartBtn: "Retry",
     reviewBtn: "Review Mistakes",
     historyTitle: "Learning History",
-    exportBtn: "Save JSON",
     clearBtn: "Clear History",
     historyHelp: "Saves up to 30 sessions and shows your growth graph.",
     recentTitle: "Recent Records",
@@ -179,6 +212,7 @@ const I18N = {
     correctRateMeta: "Accuracy",
     normalMeta: "Normal",
     challengeMeta: "Challenge",
+    wrongMeta: "Mistake Focus",
     average: "Avg",
     limit: "Limit",
     seconds: "sec",
@@ -190,13 +224,18 @@ const I18N = {
     wrongCount: "{count}x",
     wrongCountFull: "{count} wrong",
     danSuffix: "x",
+    footerAbout: "About",
+    footerPrivacy: "Privacy Policy",
+    footerContact: "Contact",
+    chartAria: "Accuracy chart",
     applause: ["Great!", "Genius!", "Perfect!", "Awesome!", "Correct!"],
     gentle: ["It's okay, try again!", "Almost there!", "You'll get it next time!"],
   },
   zh: {
     badge: "今日九九表",
     title: "九九乘法测验乐园",
-    subtitle: "用有趣的小题轻松掌握 2–9 乘法。答对就得星星！",
+    subtitle: "面向新时代的九九学习法：像游戏一样投入，用学习记录持续进步。",
+    heroStory: "这是爸爸为了自己孩子学习九九乘法，用AI亲自制作的，希望全世界的孩子都能轻松掌握。",
     languageLabel: "语言",
     danLabel: "练习乘法",
     extendLabel: "扩展到20",
@@ -210,11 +249,21 @@ const I18N = {
     sessionLabel: "学习模式",
     sessionNormal: "普通",
     sessionChallenge: "挑战",
+    sessionWrong: "错题练习",
     timeLimitLabel: "挑战时间限制",
     timeLimitHelp: "挑战模式下每题需要在限定时间内作答。",
     countLabel: "题目数量",
     starsLabel: "星星",
     starsSuffix: "个",
+    startBtn: "开始学习",
+    startBtnRestart: "重新开始学习",
+    startHelp: "先选择设置，再点击开始学习。",
+    wrongPracticeHelp: "可以基于历史错题进行集中练习，点击开始学习。",
+    wrongPracticeEmpty: "还没有错题记录。请先完成一次普通模式学习。",
+    pauseBtn: "暂停",
+    resumeBtn: "继续学习",
+    paused: "已暂停。点击继续学习以继续。",
+    ttsNoVoice: "没有可用的TTS语音",
     skipBtn: "跳过",
     nextBtn: "下一题",
     resultTitle: "今日结果",
@@ -224,7 +273,6 @@ const I18N = {
     restartBtn: "再挑战",
     reviewBtn: "查看错题",
     historyTitle: "学习记录",
-    exportBtn: "导出 JSON",
     clearBtn: "清除记录",
     historyHelp: "保存最近 30 次记录，并显示成长曲线。",
     recentTitle: "最近记录",
@@ -240,6 +288,7 @@ const I18N = {
     correctRateMeta: "正确率",
     normalMeta: "普通",
     challengeMeta: "挑战",
+    wrongMeta: "错题练习",
     average: "平均",
     limit: "限制",
     seconds: "秒",
@@ -251,13 +300,18 @@ const I18N = {
     wrongCount: "{count}次",
     wrongCountFull: "错 {count}次",
     danSuffix: "乘",
+    footerAbout: "网站介绍",
+    footerPrivacy: "隐私政策",
+    footerContact: "联系我们",
+    chartAria: "正确率图表",
     applause: ["太棒了！", "天才！", "完美！", "厉害！", "答对了！"],
     gentle: ["没关系，再试试！", "差一点！", "下次一定行！"],
   },
   ja: {
     badge: "今日の九九",
     title: "九九クイズ広場",
-    subtitle: "楽しい問題で2〜9の九九を身につけよう。正解で星がたまる！",
+    subtitle: "新しい時代の九九学習法。ゲーム感覚で集中し、記録で成長できます。",
+    heroStory: "わが子の九九学習のために、父親がAIで直接作りました。世界中の子どもが九九をやさしく覚えられるように。",
     languageLabel: "言語",
     danLabel: "練習する段",
     extendLabel: "20まで拡張",
@@ -271,11 +325,21 @@ const I18N = {
     sessionLabel: "学習モード",
     sessionNormal: "通常",
     sessionChallenge: "チャレンジ",
+    sessionWrong: "ミス集中",
     timeLimitLabel: "チャレンジ制限時間",
     timeLimitHelp: "チャレンジモードでは時間内に答えてね。",
     countLabel: "問題数",
     starsLabel: "スター",
     starsSuffix: "個",
+    startBtn: "学習開始",
+    startBtnRestart: "学習を最初から",
+    startHelp: "設定を選んでから学習開始を押してください。",
+    wrongPracticeHelp: "履歴の間違い問題だけを集中練習できます。学習開始を押してください。",
+    wrongPracticeEmpty: "まだ間違い履歴がありません。先に通常モードで学習してください。",
+    pauseBtn: "一時停止",
+    resumeBtn: "学習を再開",
+    paused: "一時停止中です。学習を再開を押してください。",
+    ttsNoVoice: "利用可能なTTS音声がありません",
     skipBtn: "スキップ",
     nextBtn: "次へ",
     resultTitle: "今日の結果",
@@ -285,7 +349,6 @@ const I18N = {
     restartBtn: "もう一回",
     reviewBtn: "まちがいを見る",
     historyTitle: "学習履歴",
-    exportBtn: "JSON保存",
     clearBtn: "履歴削除",
     historyHelp: "直近30回を保存し、成長グラフを表示します。",
     recentTitle: "最近の記録",
@@ -301,6 +364,7 @@ const I18N = {
     correctRateMeta: "正答率",
     normalMeta: "通常",
     challengeMeta: "チャレンジ",
+    wrongMeta: "ミス集中",
     average: "平均",
     limit: "制限",
     seconds: "秒",
@@ -312,13 +376,18 @@ const I18N = {
     wrongCount: "{count}回",
     wrongCountFull: "{count}回まちがい",
     danSuffix: "の段",
+    footerAbout: "サイト紹介",
+    footerPrivacy: "プライバシーポリシー",
+    footerContact: "お問い合わせ",
+    chartAria: "正答率グラフ",
     applause: ["すごい！", "天才！", "完璧！", "いいね！", "正解！"],
     gentle: ["大丈夫、もう一回！", "あと少し！", "次はできるよ！"],
   },
   es: {
     badge: "Tablas del día",
     title: "Parque de Quiz de Tablas",
-    subtitle: "Aprende las tablas del 2 al 9 con preguntas divertidas. ¡Gana estrellas!",
+    subtitle: "Un método de tablas para la nueva era: concentración tipo juego y progreso medible.",
+    heroStory: "Un papá lo creó directamente con IA para ayudar a su propio hijo con las tablas, para que niños de todo el mundo las aprendan con facilidad.",
     languageLabel: "Idioma",
     danLabel: "Tablas a practicar",
     extendLabel: "Ampliar a 20",
@@ -332,11 +401,21 @@ const I18N = {
     sessionLabel: "Modo de aprendizaje",
     sessionNormal: "Normal",
     sessionChallenge: "Desafío",
+    sessionWrong: "Errores",
     timeLimitLabel: "Límite de tiempo",
     timeLimitHelp: "En el modo desafío, responde en el tiempo indicado.",
     countLabel: "Número de preguntas",
     starsLabel: "Estrellas",
     starsSuffix: "",
+    startBtn: "Iniciar aprendizaje",
+    startBtnRestart: "Reiniciar aprendizaje",
+    startHelp: "Elige la configuración y pulsa Iniciar aprendizaje.",
+    wrongPracticeHelp: "Puedes practicar solo con tus errores frecuentes del historial. Pulsa Iniciar aprendizaje.",
+    wrongPracticeEmpty: "Aún no hay errores guardados. Haz primero una sesión en modo normal.",
+    pauseBtn: "Pausar",
+    resumeBtn: "Reanudar",
+    paused: "Pausado. Pulsa Reanudar para continuar.",
+    ttsNoVoice: "No hay voz TTS disponible",
     skipBtn: "Saltar",
     nextBtn: "Siguiente",
     resultTitle: "Resultado de hoy",
@@ -346,7 +425,6 @@ const I18N = {
     restartBtn: "Reintentar",
     reviewBtn: "Ver errores",
     historyTitle: "Historial",
-    exportBtn: "Guardar JSON",
     clearBtn: "Borrar historial",
     historyHelp: "Guarda hasta 30 sesiones y muestra tu progreso.",
     recentTitle: "Registros recientes",
@@ -362,6 +440,7 @@ const I18N = {
     correctRateMeta: "Precisión",
     normalMeta: "Normal",
     challengeMeta: "Desafío",
+    wrongMeta: "Errores",
     average: "Prom",
     limit: "Límite",
     seconds: "s",
@@ -373,13 +452,18 @@ const I18N = {
     wrongCount: "{count}x",
     wrongCountFull: "{count} errores",
     danSuffix: "x",
+    footerAbout: "Acerca del sitio",
+    footerPrivacy: "Política de privacidad",
+    footerContact: "Contacto",
+    chartAria: "Gráfico de precisión",
     applause: ["¡Genial!", "¡Eres un genio!", "¡Perfecto!", "¡Muy bien!", "¡Correcto!"],
     gentle: ["No pasa nada, intenta otra vez.", "¡Casi!", "¡La próxima lo logras!"],
   },
   fr: {
     badge: "Tables du jour",
     title: "Terrain de Quiz des Tables",
-    subtitle: "Apprends les tables de 2 à 9 avec des questions fun. Gagne des étoiles !",
+    subtitle: "Une méthode de tables pour la nouvelle ère : immersion ludique et progression mesurable.",
+    heroStory: "Créé directement avec l'IA par un papa pour aider son propre enfant à apprendre les tables, afin que les enfants du monde entier y arrivent facilement.",
     languageLabel: "Langue",
     danLabel: "Tables à pratiquer",
     extendLabel: "Étendre jusqu'à 20",
@@ -393,11 +477,21 @@ const I18N = {
     sessionLabel: "Mode d'apprentissage",
     sessionNormal: "Normal",
     sessionChallenge: "Défi",
+    sessionWrong: "Erreurs ciblées",
     timeLimitLabel: "Limite de temps",
     timeLimitHelp: "En mode défi, réponds dans le temps imparti.",
     countLabel: "Nombre de questions",
     starsLabel: "Étoiles",
     starsSuffix: "",
+    startBtn: "Commencer",
+    startBtnRestart: "Recommencer",
+    startHelp: "Choisis les options puis clique sur Commencer.",
+    wrongPracticeHelp: "Entraîne-toi uniquement sur les erreurs fréquentes de ton historique. Clique sur Commencer.",
+    wrongPracticeEmpty: "Aucune erreur enregistrée pour l'instant. Fais d'abord une session en mode normal.",
+    pauseBtn: "Pause",
+    resumeBtn: "Reprendre",
+    paused: "En pause. Clique sur Reprendre pour continuer.",
+    ttsNoVoice: "Aucune voix TTS disponible",
     skipBtn: "Passer",
     nextBtn: "Suivant",
     resultTitle: "Résultat du jour",
@@ -407,7 +501,6 @@ const I18N = {
     restartBtn: "Recommencer",
     reviewBtn: "Voir les erreurs",
     historyTitle: "Historique",
-    exportBtn: "Enregistrer JSON",
     clearBtn: "Effacer",
     historyHelp: "Enregistre jusqu'à 30 sessions et affiche ta progression.",
     recentTitle: "Historique récent",
@@ -423,6 +516,7 @@ const I18N = {
     correctRateMeta: "Précision",
     normalMeta: "Normal",
     challengeMeta: "Défi",
+    wrongMeta: "Erreurs ciblées",
     average: "Moy",
     limit: "Limite",
     seconds: "s",
@@ -434,13 +528,18 @@ const I18N = {
     wrongCount: "{count}x",
     wrongCountFull: "{count} erreurs",
     danSuffix: "x",
+    footerAbout: "À propos",
+    footerPrivacy: "Politique de confidentialité",
+    footerContact: "Contact",
+    chartAria: "Graphique de précision",
     applause: ["Super !", "Génial !", "Parfait !", "Bravo !", "Correct !"],
     gentle: ["Ce n'est pas grave, réessaie.", "Presque !", "Tu y arriveras !"],
   },
   de: {
     badge: "Heutige Einmaleins",
     title: "Einmaleins-Quiz Spielplatz",
-    subtitle: "Lerne die 2–9er Reihen mit Spaß. Sammle Sterne!",
+    subtitle: "Eine Einmaleins-Lernmethode für die neue Zeit: spielerischer Fokus und messbarer Fortschritt.",
+    heroStory: "Ein Vater hat es mit KI direkt für das Einmaleins-Lernen seines eigenen Kindes gebaut, damit Kinder weltweit leichter lernen können.",
     languageLabel: "Sprache",
     danLabel: "Tabellen üben",
     extendLabel: "Bis 20 erweitern",
@@ -454,11 +553,21 @@ const I18N = {
     sessionLabel: "Lernmodus",
     sessionNormal: "Normal",
     sessionChallenge: "Challenge",
+    sessionWrong: "Fehlerfokus",
     timeLimitLabel: "Zeitlimit",
     timeLimitHelp: "Im Challenge-Modus musst du rechtzeitig antworten.",
     countLabel: "Anzahl der Fragen",
     starsLabel: "Sterne",
     starsSuffix: "",
+    startBtn: "Lernen starten",
+    startBtnRestart: "Lernen neu starten",
+    startHelp: "Wähle Einstellungen und klicke dann auf Lernen starten.",
+    wrongPracticeHelp: "Hier übst du gezielt mit häufig falschen Aufgaben aus deinem Verlauf. Klicke auf Lernen starten.",
+    wrongPracticeEmpty: "Noch keine Fehlerdaten vorhanden. Bitte zuerst eine normale Runde abschließen.",
+    pauseBtn: "Pausieren",
+    resumeBtn: "Fortsetzen",
+    paused: "Pausiert. Klicke auf Fortsetzen, um weiterzumachen.",
+    ttsNoVoice: "Keine TTS-Stimme verfügbar",
     skipBtn: "Überspringen",
     nextBtn: "Weiter",
     resultTitle: "Ergebnis heute",
@@ -468,7 +577,6 @@ const I18N = {
     restartBtn: "Nochmal",
     reviewBtn: "Fehler ansehen",
     historyTitle: "Verlauf",
-    exportBtn: "JSON speichern",
     clearBtn: "Verlauf löschen",
     historyHelp: "Speichert bis zu 30 Sessions und zeigt deinen Fortschritt.",
     recentTitle: "Letzte Einträge",
@@ -484,6 +592,7 @@ const I18N = {
     correctRateMeta: "Genauigkeit",
     normalMeta: "Normal",
     challengeMeta: "Challenge",
+    wrongMeta: "Fehlerfokus",
     average: "Ø",
     limit: "Limit",
     seconds: "s",
@@ -495,13 +604,18 @@ const I18N = {
     wrongCount: "{count}x",
     wrongCountFull: "{count} Fehler",
     danSuffix: "x",
+    footerAbout: "Über die Website",
+    footerPrivacy: "Datenschutz",
+    footerContact: "Kontakt",
+    chartAria: "Genauigkeitsdiagramm",
     applause: ["Super!", "Genial!", "Perfekt!", "Toll!", "Richtig!"],
     gentle: ["Nicht schlimm, nochmal.", "Fast!", "Beim nächsten Mal klappt's!"],
   },
   pt: {
     badge: "Tabuadas do dia",
     title: "Parque de Quiz da Tabuada",
-    subtitle: "Aprenda a tabuada do 2 ao 9 com diversão. Ganhe estrelas!",
+    subtitle: "Um novo jeito de aprender tabuada para esta era: foco de jogo e progresso visível.",
+    heroStory: "Um pai criou isso diretamente com IA para ajudar o próprio filho a estudar tabuada, para que crianças do mundo todo aprendam com mais facilidade.",
     languageLabel: "Idioma",
     danLabel: "Tabuadas",
     extendLabel: "Expandir até 20",
@@ -515,11 +629,21 @@ const I18N = {
     sessionLabel: "Modo",
     sessionNormal: "Normal",
     sessionChallenge: "Desafio",
+    sessionWrong: "Foco nos erros",
     timeLimitLabel: "Limite de tempo",
     timeLimitHelp: "No modo desafio, responda dentro do tempo.",
     countLabel: "Número de questões",
     starsLabel: "Estrelas",
     starsSuffix: "",
+    startBtn: "Iniciar estudo",
+    startBtnRestart: "Reiniciar estudo",
+    startHelp: "Escolha as opções e toque em Iniciar estudo.",
+    wrongPracticeHelp: "Pratique só as questões que você mais erra no histórico. Toque em Iniciar estudo.",
+    wrongPracticeEmpty: "Ainda não há erros registrados. Faça primeiro uma sessão no modo normal.",
+    pauseBtn: "Pausar",
+    resumeBtn: "Retomar",
+    paused: "Pausado. Toque em Retomar para continuar.",
+    ttsNoVoice: "Sem voz TTS disponível",
     skipBtn: "Pular",
     nextBtn: "Próxima",
     resultTitle: "Resultado de hoje",
@@ -529,7 +653,6 @@ const I18N = {
     restartBtn: "Tentar novamente",
     reviewBtn: "Ver erros",
     historyTitle: "Histórico",
-    exportBtn: "Salvar JSON",
     clearBtn: "Limpar histórico",
     historyHelp: "Salva até 30 sessões e mostra seu progresso.",
     recentTitle: "Registros recentes",
@@ -545,6 +668,7 @@ const I18N = {
     correctRateMeta: "Precisão",
     normalMeta: "Normal",
     challengeMeta: "Desafio",
+    wrongMeta: "Foco nos erros",
     average: "Média",
     limit: "Limite",
     seconds: "s",
@@ -556,13 +680,18 @@ const I18N = {
     wrongCount: "{count}x",
     wrongCountFull: "{count} erros",
     danSuffix: "x",
+    footerAbout: "Sobre o site",
+    footerPrivacy: "Política de privacidade",
+    footerContact: "Contato",
+    chartAria: "Gráfico de precisão",
     applause: ["Ótimo!", "Gênio!", "Perfeito!", "Muito bem!", "Correto!"],
     gentle: ["Tudo bem, tente de novo.", "Quase!", "Você consegue!"],
   },
   vi: {
     badge: "Bảng cửu chương hôm nay",
     title: "Sân chơi Quiz Cửu Chương",
-    subtitle: "Học bảng 2–9 qua câu hỏi vui. Trả lời đúng để nhận sao!",
+    subtitle: "Phương pháp học bảng cửu chương cho thời đại mới: tập trung như chơi game và tiến bộ rõ ràng.",
+    heroStory: "Đây là sản phẩm do người cha tự làm trực tiếp bằng AI để giúp chính con mình học bảng cửu chương, để trẻ em khắp thế giới cũng học dễ hơn.",
     languageLabel: "Ngôn ngữ",
     danLabel: "Bảng cần luyện",
     extendLabel: "Mở rộng đến 20",
@@ -576,11 +705,21 @@ const I18N = {
     sessionLabel: "Chế độ",
     sessionNormal: "Bình thường",
     sessionChallenge: "Thử thách",
+    sessionWrong: "Luyện lỗi sai",
     timeLimitLabel: "Giới hạn thời gian",
     timeLimitHelp: "Ở chế độ thử thách, trả lời trong thời gian cho phép.",
     countLabel: "Số câu hỏi",
     starsLabel: "Sao",
     starsSuffix: "",
+    startBtn: "Bắt đầu học",
+    startBtnRestart: "Bắt đầu lại",
+    startHelp: "Chọn cài đặt rồi nhấn Bắt đầu học.",
+    wrongPracticeHelp: "Bạn có thể luyện theo các câu hay sai trong lịch sử. Nhấn Bắt đầu học để bắt đầu.",
+    wrongPracticeEmpty: "Chưa có dữ liệu câu sai. Hãy làm một phiên ở chế độ bình thường trước.",
+    pauseBtn: "Tạm dừng",
+    resumeBtn: "Tiếp tục",
+    paused: "Đã tạm dừng. Nhấn Tiếp tục để học tiếp.",
+    ttsNoVoice: "Không có giọng TTS khả dụng",
     skipBtn: "Bỏ qua",
     nextBtn: "Tiếp theo",
     resultTitle: "Kết quả hôm nay",
@@ -590,7 +729,6 @@ const I18N = {
     restartBtn: "Làm lại",
     reviewBtn: "Xem câu sai",
     historyTitle: "Lịch sử học",
-    exportBtn: "Lưu JSON",
     clearBtn: "Xóa lịch sử",
     historyHelp: "Lưu tối đa 30 lần và hiển thị đồ thị tiến bộ.",
     recentTitle: "Gần đây",
@@ -606,6 +744,7 @@ const I18N = {
     correctRateMeta: "Tỉ lệ đúng",
     normalMeta: "Bình thường",
     challengeMeta: "Thử thách",
+    wrongMeta: "Luyện lỗi sai",
     average: "TB",
     limit: "Giới hạn",
     seconds: "giây",
@@ -617,13 +756,18 @@ const I18N = {
     wrongCount: "{count} lần",
     wrongCountFull: "Sai {count} lần",
     danSuffix: "x",
+    footerAbout: "Giới thiệu trang",
+    footerPrivacy: "Chính sách riêng tư",
+    footerContact: "Liên hệ",
+    chartAria: "Biểu đồ tỉ lệ đúng",
     applause: ["Tuyệt!", "Thiên tài!", "Hoàn hảo!", "Rất tốt!", "Đúng rồi!"],
     gentle: ["Không sao, thử lại nhé!", "Gần đúng rồi!", "Lần sau sẽ đúng!"],
   },
   th: {
     badge: "ตารางคูณวันนี้",
     title: "สนามเด็กเล่นควิซตารางคูณ",
-    subtitle: "ฝึกตารางคูณ 2–9 แบบสนุก ๆ ตอบถูกได้ดาว!",
+    subtitle: "วิธีเรียนตารางคูณยุคใหม่: สนุกแบบเกมและเห็นพัฒนาการได้ชัดเจน",
+    heroStory: "พ่อคนหนึ่งสร้างสิ่งนี้ด้วย AI โดยตรงเพื่อช่วยลูกของตัวเองเรียนตารางคูณ เพื่อให้เด็กทั่วโลกเรียนได้ง่ายขึ้น",
     languageLabel: "ภาษา",
     danLabel: "ตารางที่ฝึก",
     extendLabel: "ขยายถึง 20",
@@ -637,11 +781,21 @@ const I18N = {
     sessionLabel: "โหมดการเรียน",
     sessionNormal: "ปกติ",
     sessionChallenge: "ท้าทาย",
+    sessionWrong: "ฝึกข้อผิดบ่อย",
     timeLimitLabel: "จำกัดเวลา",
     timeLimitHelp: "โหมดท้าทายต้องตอบภายในเวลาที่กำหนด",
     countLabel: "จำนวนข้อ",
     starsLabel: "ดาว",
     starsSuffix: "",
+    startBtn: "เริ่มเรียน",
+    startBtnRestart: "เริ่มใหม่",
+    startHelp: "เลือกการตั้งค่าแล้วกดเริ่มเรียน",
+    wrongPracticeHelp: "คุณสามารถฝึกเฉพาะข้อที่ผิดบ่อยจากประวัติได้ กดเริ่มเรียนเพื่อเริ่ม",
+    wrongPracticeEmpty: "ยังไม่มีประวัติข้อผิดบ่อย กรุณาฝึกในโหมดปกติก่อน",
+    pauseBtn: "หยุดชั่วคราว",
+    resumeBtn: "เรียนต่อ",
+    paused: "กำลังหยุดชั่วคราว กดเรียนต่อเพื่อทำต่อ",
+    ttsNoVoice: "ไม่มีเสียง TTS ที่ใช้ได้",
     skipBtn: "ข้าม",
     nextBtn: "ข้อต่อไป",
     resultTitle: "ผลลัพธ์วันนี้",
@@ -651,7 +805,6 @@ const I18N = {
     restartBtn: "เล่นอีกครั้ง",
     reviewBtn: "ดูข้อผิดพลาด",
     historyTitle: "ประวัติการเรียน",
-    exportBtn: "บันทึก JSON",
     clearBtn: "ล้างประวัติ",
     historyHelp: "บันทึกได้ 30 ครั้งและแสดงกราฟพัฒนา",
     recentTitle: "บันทึกล่าสุด",
@@ -667,6 +820,7 @@ const I18N = {
     correctRateMeta: "ความถูกต้อง",
     normalMeta: "ปกติ",
     challengeMeta: "ท้าทาย",
+    wrongMeta: "ฝึกข้อผิดบ่อย",
     average: "เฉลี่ย",
     limit: "จำกัด",
     seconds: "วินาที",
@@ -678,13 +832,18 @@ const I18N = {
     wrongCount: "{count}ครั้ง",
     wrongCountFull: "ผิด {count} ครั้ง",
     danSuffix: "x",
+    footerAbout: "เกี่ยวกับเว็บไซต์",
+    footerPrivacy: "นโยบายความเป็นส่วนตัว",
+    footerContact: "ติดต่อ",
+    chartAria: "กราฟความถูกต้อง",
     applause: ["เยี่ยม!", "สุดยอด!", "สมบูรณ์แบบ!", "ดีมาก!", "ถูกต้อง!"],
     gentle: ["ไม่เป็นไร ลองใหม่!", "เกือบแล้ว!", "ครั้งหน้าจะได้!"],
   },
   id: {
     badge: "Tabel hari ini",
     title: "Taman Kuis Perkalian",
-    subtitle: "Belajar tabel 2–9 dengan soal seru. Dapatkan bintang saat benar!",
+    subtitle: "Metode belajar perkalian untuk era baru: fokus seperti bermain game dengan progres yang terukur.",
+    heroStory: "Seorang ayah membuatnya langsung dengan AI untuk membantu anaknya sendiri belajar perkalian, agar anak-anak di seluruh dunia bisa belajar lebih mudah.",
     languageLabel: "Bahasa",
     danLabel: "Tabel latihan",
     extendLabel: "Perluas hingga 20",
@@ -698,11 +857,21 @@ const I18N = {
     sessionLabel: "Mode belajar",
     sessionNormal: "Normal",
     sessionChallenge: "Tantangan",
+    sessionWrong: "Fokus salah",
     timeLimitLabel: "Batas waktu",
     timeLimitHelp: "Pada mode tantangan, jawab dalam waktu yang ditentukan.",
     countLabel: "Jumlah soal",
     starsLabel: "Bintang",
     starsSuffix: "",
+    startBtn: "Mulai belajar",
+    startBtnRestart: "Mulai ulang",
+    startHelp: "Pilih pengaturan lalu klik Mulai belajar.",
+    wrongPracticeHelp: "Latih soal yang sering salah berdasarkan riwayat Anda. Klik Mulai belajar untuk memulai.",
+    wrongPracticeEmpty: "Belum ada riwayat soal salah. Selesaikan sesi mode normal terlebih dahulu.",
+    pauseBtn: "Jeda",
+    resumeBtn: "Lanjutkan",
+    paused: "Dijeda. Klik Lanjutkan untuk melanjutkan.",
+    ttsNoVoice: "Suara TTS tidak tersedia",
     skipBtn: "Lewati",
     nextBtn: "Berikutnya",
     resultTitle: "Hasil hari ini",
@@ -712,7 +881,6 @@ const I18N = {
     restartBtn: "Coba lagi",
     reviewBtn: "Lihat salah",
     historyTitle: "Riwayat belajar",
-    exportBtn: "Simpan JSON",
     clearBtn: "Hapus riwayat",
     historyHelp: "Menyimpan hingga 30 sesi dan menampilkan grafik perkembangan.",
     recentTitle: "Riwayat terbaru",
@@ -728,6 +896,7 @@ const I18N = {
     correctRateMeta: "Akurasi",
     normalMeta: "Normal",
     challengeMeta: "Tantangan",
+    wrongMeta: "Fokus salah",
     average: "Rata2",
     limit: "Batas",
     seconds: "detik",
@@ -739,6 +908,10 @@ const I18N = {
     wrongCount: "{count}x",
     wrongCountFull: "{count} salah",
     danSuffix: "x",
+    footerAbout: "Tentang situs",
+    footerPrivacy: "Kebijakan privasi",
+    footerContact: "Kontak",
+    chartAria: "Grafik akurasi",
     applause: ["Bagus!", "Hebat!", "Sempurna!", "Keren!", "Benar!"],
     gentle: ["Tidak apa-apa, coba lagi!", "Hampir!", "Kamu pasti bisa!"],
   },
@@ -756,12 +929,20 @@ function applyTranslations() {
     const key = el.dataset.i18n;
     el.textContent = t(key);
   });
+  if (historyChart) {
+    historyChart.setAttribute("aria-label", t("chartAria"));
+  }
   buildChips();
   updateModeButtons();
-  if (state.session === "challenge") {
+  if (state.hasStarted && state.session === "challenge") {
     timerEl.textContent = t("remainingTime", { value: state.timeLimit.toFixed(1) });
   }
+  if (state.isPaused) {
+    feedbackEl.textContent = t("paused");
+  }
   timeLimitValue.textContent = `${state.timeLimit}${t("seconds")}`;
+  updateStartButtonLabel();
+  updatePauseButtonState();
 }
 
 function getLangCode() {
@@ -807,7 +988,7 @@ function renderVoiceSelect() {
   if (!state.voices.length) {
     const opt = document.createElement("option");
     opt.value = "";
-    opt.textContent = "TTS 음성이 없습니다";
+    opt.textContent = t("ttsNoVoice");
     ttsVoiceSelect.appendChild(opt);
     ttsVoiceSelect.disabled = true;
     return;
@@ -889,6 +1070,166 @@ function speakQuestion(force = false) {
   window.speechSynthesis.speak(utterance);
 }
 
+function getStartLabel() {
+  return state.hasStarted ? t("startBtnRestart") : t("startBtn");
+}
+
+function getIdleMessage() {
+  if (state.session === "wrong") {
+    return t("wrongPracticeHelp");
+  }
+  return t("startHelp");
+}
+
+function getPauseLabel() {
+  return state.isPaused ? t("resumeBtn") : t("pauseBtn");
+}
+
+function normalizeDanSelection() {
+  state.maxDan = extendToggle.checked ? 20 : 9;
+  state.maxTimes = extendToggle.checked ? 20 : 9;
+  for (let dan = state.maxDan + 1; dan <= 20; dan += 1) {
+    state.selectedDans.delete(dan);
+  }
+  if (state.selectedDans.size === 0) {
+    state.selectedDans.add(2);
+  }
+}
+
+function updateStartButtonLabel() {
+  if (!startBtn) return;
+  startBtn.textContent = getStartLabel();
+}
+
+function updatePauseButtonState() {
+  if (!pauseBtn) return;
+  const isResultVisible = result.style.display === "block";
+  pauseBtn.textContent = getPauseLabel();
+  pauseBtn.disabled = !state.hasStarted || isResultVisible;
+}
+
+function clearAutoNext() {
+  if (!state.autoNextTimer) return;
+  clearTimeout(state.autoNextTimer);
+  state.autoNextTimer = null;
+}
+
+function scheduleAutoNext(delay) {
+  clearAutoNext();
+  state.pendingAutoNext = false;
+  state.autoNextTimer = setTimeout(() => {
+    state.autoNextTimer = null;
+    if (state.isPaused) {
+      state.pendingAutoNext = true;
+      return;
+    }
+    nextQuestion();
+  }, delay);
+}
+
+function renderIdleState() {
+  stopTimer();
+  stopCountdown();
+  clearAutoNext();
+  normalizeDanSelection();
+  buildChips();
+
+  state.current = 0;
+  state.correct = 0;
+  state.stars = 0;
+  state.hearts = 3;
+  state.questions = [];
+  state.answers = [];
+  state.questionTimes = [];
+  state.elapsedMs = 0;
+  state.countdownRemainingMs = null;
+  state.pendingAutoNext = false;
+  state.pauseSnapshot = null;
+  state.isPaused = false;
+
+  progressEl.textContent = `0 / ${countRange.value}`;
+  questionEl.textContent = "2 × 3 = ?";
+  feedbackEl.textContent = getIdleMessage();
+  questionTts.textContent = "";
+  answersEl.innerHTML = "";
+  timerEl.textContent = "00:00";
+  starsEl.textContent = "0";
+  nextBtn.disabled = true;
+  skipBtn.disabled = true;
+  nextBtn.textContent = t("nextBtn");
+  renderHearts();
+
+  card.style.display = "block";
+  result.style.display = "none";
+  reviewList.innerHTML = "";
+  updateStartButtonLabel();
+  updatePauseButtonState();
+}
+
+function pauseQuiz() {
+  if (!state.hasStarted || state.isPaused || result.style.display === "block") return;
+  state.isPaused = true;
+
+  if (state.session === "normal" && state.startedAt) {
+    state.elapsedMs = Date.now() - state.startedAt;
+    timerEl.textContent = formatTime(state.elapsedMs);
+  }
+  stopTimer();
+  stopCountdown();
+
+  if (state.autoNextTimer) {
+    clearAutoNext();
+    state.pendingAutoNext = true;
+  }
+
+  const answerButtons = Array.from(document.querySelectorAll(".answer-btn"));
+  state.pauseSnapshot = {
+    nextDisabled: nextBtn.disabled,
+    skipDisabled: skipBtn.disabled,
+    answerDisabled: answerButtons.map((btn) => btn.disabled),
+  };
+
+  answerButtons.forEach((btn) => {
+    btn.disabled = true;
+  });
+  nextBtn.disabled = true;
+  skipBtn.disabled = true;
+  feedbackEl.textContent = t("paused");
+  updatePauseButtonState();
+}
+
+function resumeQuiz() {
+  if (!state.isPaused) return;
+  state.isPaused = false;
+
+  if (state.pendingAutoNext) {
+    state.pendingAutoNext = false;
+    updatePauseButtonState();
+    nextQuestion();
+    return;
+  }
+
+  if (state.session === "normal") {
+    startTimer();
+  } else if (state.session === "challenge") {
+    startCountdown(state.countdownRemainingMs || state.timeLimit * 1000);
+  }
+
+  const snapshot = state.pauseSnapshot;
+  const answerButtons = Array.from(document.querySelectorAll(".answer-btn"));
+  if (snapshot && snapshot.answerDisabled.length === answerButtons.length) {
+    answerButtons.forEach((btn, index) => {
+      btn.disabled = snapshot.answerDisabled[index];
+    });
+    nextBtn.disabled = snapshot.nextDisabled;
+    skipBtn.disabled = snapshot.skipDisabled;
+  } else {
+    skipBtn.disabled = state.session === "challenge";
+  }
+  state.pauseSnapshot = null;
+  updatePauseButtonState();
+}
+
 function buildChips() {
   danChips.innerHTML = "";
   for (let dan = 2; dan <= state.maxDan; dan += 1) {
@@ -911,7 +1252,11 @@ function toggleDan(dan, chip) {
     state.selectedDans.add(dan);
     chip.classList.add("active");
   }
-  startQuiz();
+  if (state.hasStarted) {
+    startQuiz();
+    return;
+  }
+  progressEl.textContent = `0 / ${countRange.value}`;
 }
 
 function updateModeButtons() {
@@ -926,8 +1271,12 @@ function updateModeButtons() {
 }
 
 function buildQuestions() {
-  const dans = Array.from(state.selectedDans);
+  const dans = Array.from(state.selectedDans).sort((a, b) => a - b);
   const total = state.total;
+  if (state.session === "wrong") {
+    state.questions = buildWrongPracticeQuestions(total);
+    return;
+  }
   const questions = [];
   const wrongPool = getWrongPool();
   const ratio = state.session === "challenge" ? CHALLENGE_WRONG_RATIO : NORMAL_WRONG_RATIO;
@@ -937,40 +1286,111 @@ function buildQuestions() {
       ? Math.min(wrongTarget, wrongPool.length)
       : 0;
   const used = new Set();
+  const basePool = [];
+  for (let times = 1; times <= state.maxTimes; times += 1) {
+    for (let i = 0; i < dans.length; i += 1) {
+      const dan = dans[i];
+      basePool.push({ dan, times, answer: dan * times });
+    }
+  }
+
+  if (basePool.length === 0 || total <= 0) {
+    state.questions = [];
+    return;
+  }
 
   for (let i = 0; i < wrongCount; i += 1) {
     const item = wrongPool[i % wrongPool.length];
+    if (!state.selectedDans.has(item.dan) || item.times > state.maxTimes) continue;
     const key = `${item.dan}x${item.times}`;
     if (used.has(key)) continue;
     used.add(key);
     questions.push({ dan: item.dan, times: item.times, answer: item.dan * item.times });
   }
 
-  if (state.mode === "sequence") {
-    let i = 0;
-    while (questions.length < total) {
-      const dan = dans[i % dans.length];
-      const times = (Math.floor(i / dans.length) % state.maxTimes) + 1;
-      const key = `${dan}x${times}`;
-      if (!used.has(key)) {
-        used.add(key);
-        questions.push({ dan, times, answer: dan * times });
-      }
-      i += 1;
+  const remainingUnique = basePool.filter((item) => !used.has(`${item.dan}x${item.times}`));
+  if (state.mode !== "sequence") {
+    shuffle(remainingUnique);
+  }
+
+  for (let i = 0; i < remainingUnique.length && questions.length < total; i += 1) {
+    questions.push(remainingUnique[i]);
+  }
+
+  // If total is larger than available unique combinations, repeat safely.
+  let cursor = 0;
+  while (questions.length < total) {
+    if (state.mode === "sequence") {
+      const item = basePool[cursor % basePool.length];
+      questions.push({ dan: item.dan, times: item.times, answer: item.answer });
+      cursor += 1;
+      continue;
     }
-  } else {
-    while (questions.length < total) {
-      const dan = dans[Math.floor(Math.random() * dans.length)];
-      const times = Math.floor(Math.random() * state.maxTimes) + 1;
-      const key = `${dan}x${times}`;
-      if (!used.has(key)) {
-        used.add(key);
-        questions.push({ dan, times, answer: dan * times });
-      }
-    }
+    const item = basePool[Math.floor(Math.random() * basePool.length)];
+    questions.push({ dan: item.dan, times: item.times, answer: item.answer });
   }
 
   state.questions = questions;
+}
+
+function buildWrongPracticeQuestions(total) {
+  const wrongPool = getWrongPool().filter((item) => {
+    return state.selectedDans.has(item.dan) && item.times <= state.maxTimes;
+  });
+  if (wrongPool.length === 0 || total <= 0) {
+    return [];
+  }
+
+  const counter = {};
+  wrongPool.forEach((item) => {
+    const key = `${item.dan}x${item.times}`;
+    counter[key] = (counter[key] || 0) + 1;
+  });
+
+  const ranked = Object.entries(counter)
+    .map(([key, count]) => {
+      const [dan, times] = key.split("x");
+      const danNum = Number(dan);
+      const timesNum = Number(times);
+      return { dan: danNum, times: timesNum, answer: danNum * timesNum, count };
+    })
+    .sort((a, b) => b.count - a.count || a.dan - b.dan || a.times - b.times);
+
+  const firstPass = ranked.slice();
+  if (state.mode !== "sequence") {
+    shuffle(firstPass);
+  }
+
+  const questions = [];
+  for (let i = 0; i < firstPass.length && questions.length < total; i += 1) {
+    const item = firstPass[i];
+    questions.push({ dan: item.dan, times: item.times, answer: item.answer });
+  }
+
+  const weightedPool = [];
+  ranked.forEach((item) => {
+    for (let i = 0; i < item.count; i += 1) {
+      weightedPool.push(item);
+    }
+  });
+
+  if (weightedPool.length === 0) {
+    return questions;
+  }
+
+  let cursor = 0;
+  while (questions.length < total) {
+    let item;
+    if (state.mode === "sequence") {
+      item = ranked[cursor % ranked.length];
+      cursor += 1;
+    } else {
+      item = weightedPool[Math.floor(Math.random() * weightedPool.length)];
+    }
+    questions.push({ dan: item.dan, times: item.times, answer: item.answer });
+  }
+
+  return questions;
 }
 
 function shuffle(array) {
@@ -1003,9 +1423,10 @@ function formatSeconds(ms) {
 
 function startTimer() {
   if (state.timer) clearInterval(state.timer);
-  state.startedAt = Date.now();
+  state.startedAt = Date.now() - state.elapsedMs;
   state.timer = setInterval(() => {
-    timerEl.textContent = formatTime(Date.now() - state.startedAt);
+    state.elapsedMs = Date.now() - state.startedAt;
+    timerEl.textContent = formatTime(state.elapsedMs);
   }, 500);
 }
 
@@ -1014,13 +1435,15 @@ function stopTimer() {
   state.timer = null;
 }
 
-function startCountdown() {
+function startCountdown(initialRemainingMs = state.timeLimit * 1000) {
   if (state.countdownTimer) clearInterval(state.countdownTimer);
   state.questionStartedAt = Date.now();
-  const limitMs = state.timeLimit * 1000;
+  const limitMs = Math.max(100, initialRemainingMs);
+  state.countdownRemainingMs = limitMs;
   const update = () => {
     const elapsed = Date.now() - state.questionStartedAt;
     const remaining = Math.max(0, limitMs - elapsed);
+    state.countdownRemainingMs = remaining;
     const value = (Math.ceil(remaining / 100) / 10).toFixed(1);
     timerEl.textContent = t("remainingTime", { value });
     if (remaining <= 0) {
@@ -1039,10 +1462,13 @@ function stopCountdown() {
 function renderQuestion() {
   const current = state.questions[state.current];
   if (!current) return;
+  state.pauseSnapshot = null;
+  state.pendingAutoNext = false;
   progressEl.textContent = `${state.current + 1} / ${state.total}`;
   questionEl.textContent = `${current.dan} × ${current.times} = ?`;
   feedbackEl.textContent = "";
   nextBtn.disabled = true;
+  skipBtn.disabled = state.session === "challenge";
   questionTts.textContent = "";
 
   answersEl.innerHTML = "";
@@ -1061,12 +1487,15 @@ function renderQuestion() {
   card.classList.add("pop");
 
   if (state.session === "challenge") {
+    state.countdownRemainingMs = state.timeLimit * 1000;
     startCountdown();
   }
+  updatePauseButtonState();
   speakQuestion();
 }
 
 function handleAnswer(button, value) {
+  if (state.isPaused) return;
   const current = state.questions[state.current];
   if (!current) return;
 
@@ -1108,12 +1537,11 @@ function handleAnswer(button, value) {
     nextBtn.textContent = t("resultsBtn");
   }
 
-  setTimeout(() => {
-    nextQuestion();
-  }, 600);
+  scheduleAutoNext(600);
 }
 
 function handleSkip() {
+  if (state.isPaused) return;
   const current = state.questions[state.current];
   if (!current) return;
   if (state.session === "challenge") return;
@@ -1126,12 +1554,11 @@ function handleSkip() {
   });
   feedbackEl.textContent = t("skipFeedback");
   nextBtn.disabled = false;
-  setTimeout(() => {
-    nextQuestion();
-  }, 600);
+  scheduleAutoNext(600);
 }
 
 function handleTimeout() {
+  if (state.isPaused) return;
   if (state.session !== "challenge") return;
   stopCountdown();
   const current = state.questions[state.current];
@@ -1156,12 +1583,13 @@ function handleTimeout() {
   renderHearts();
   nextBtn.disabled = false;
   nextBtn.textContent = state.hearts === 0 ? t("resultsBtn") : t("nextBtn");
-  setTimeout(() => {
-    nextQuestion();
-  }, 500);
+  scheduleAutoNext(500);
 }
 
 function nextQuestion() {
+  if (state.isPaused) return;
+  clearAutoNext();
+  state.pendingAutoNext = false;
   if (state.hearts === 0 || state.current === state.total - 1) {
     finishQuiz();
     return;
@@ -1173,6 +1601,10 @@ function nextQuestion() {
 function finishQuiz() {
   stopTimer();
   stopCountdown();
+  clearAutoNext();
+  state.pendingAutoNext = false;
+  state.pauseSnapshot = null;
+  state.isPaused = false;
   card.style.display = "none";
   result.style.display = "block";
 
@@ -1212,17 +1644,19 @@ function finishQuiz() {
     session: state.session,
   });
 
+  updatePauseButtonState();
   renderHistory();
 }
 
 function startQuiz() {
+  state.hasStarted = true;
+  state.isPaused = false;
+  state.pauseSnapshot = null;
+  state.pendingAutoNext = false;
+  clearAutoNext();
   state.total = Number(countRange.value);
   state.timeLimit = Number(timeLimitRange.value);
-  state.maxDan = extendToggle.checked ? 20 : 9;
-  state.maxTimes = extendToggle.checked ? 20 : 9;
-  for (let dan = state.maxDan + 1; dan <= 20; dan += 1) {
-    state.selectedDans.delete(dan);
-  }
+  normalizeDanSelection();
   buildChips();
   state.current = 0;
   state.correct = 0;
@@ -1231,12 +1665,22 @@ function startQuiz() {
   state.questions = [];
   state.answers = [];
   state.questionTimes = [];
+  state.elapsedMs = 0;
+  state.countdownRemainingMs = null;
   timerEl.textContent = "00:00";
   starsEl.textContent = "0";
   renderHearts();
   nextBtn.textContent = t("nextBtn");
+  updateStartButtonLabel();
+  updatePauseButtonState();
 
   buildQuestions();
+  if (state.questions.length === 0) {
+    state.hasStarted = false;
+    renderIdleState();
+    feedbackEl.textContent = t("wrongPracticeEmpty");
+    return;
+  }
   renderQuestion();
 
   card.style.display = "block";
@@ -1307,6 +1751,8 @@ function renderHistoryList(history) {
     const meta =
       item.session === "challenge"
         ? `${t("challengeMeta")} · ${t("average")} ${formatSeconds(item.avgTimeMs)}${t("seconds")} · ${t("limit")} ${item.timeLimit}${t("seconds")}`
+        : item.session === "wrong"
+          ? `${t("wrongMeta")} · ${item.time}`
         : `${t("normalMeta")} · ${item.time}`;
     div.innerHTML = `<strong>${item.rate}%</strong> <span>${formatDate(item.date)} · ${item.correct}/${item.total} · ${meta}</span>`;
     historyList.appendChild(div);
@@ -1464,9 +1910,18 @@ function getAverageTime() {
 
 countRange.addEventListener("input", () => {
   countValue.textContent = countRange.value;
+  if (!state.hasStarted) {
+    progressEl.textContent = `0 / ${countRange.value}`;
+  }
 });
 
-countRange.addEventListener("change", startQuiz);
+countRange.addEventListener("change", () => {
+  if (state.hasStarted) {
+    startQuiz();
+    return;
+  }
+  renderIdleState();
+});
 
 timeLimitRange.addEventListener("input", () => {
   timeLimitValue.textContent = `${timeLimitRange.value}${t("seconds")}`;
@@ -1474,22 +1929,44 @@ timeLimitRange.addEventListener("input", () => {
 
 timeLimitRange.addEventListener("change", () => {
   state.timeLimit = Number(timeLimitRange.value);
-  if (state.session === "challenge") startQuiz();
+  if (state.hasStarted && state.session === "challenge") {
+    startQuiz();
+  }
 });
 
 extendToggle.addEventListener("change", () => {
-  startQuiz();
+  if (state.hasStarted) {
+    startQuiz();
+    return;
+  }
+  renderIdleState();
 });
 
 skipBtn.addEventListener("click", () => {
   handleSkip();
 });
 
+if (pauseBtn) {
+  pauseBtn.addEventListener("click", () => {
+    if (state.isPaused) {
+      resumeQuiz();
+      return;
+    }
+    pauseQuiz();
+  });
+}
+
 nextBtn.addEventListener("click", () => {
   nextQuestion();
 });
 
 restartBtn.addEventListener("click", startQuiz);
+
+if (startBtn) {
+  startBtn.addEventListener("click", () => {
+    startQuiz();
+  });
+}
 
 reviewBtn.addEventListener("click", () => {
   reviewList.scrollIntoView({ behavior: "smooth" });
@@ -1498,26 +1975,6 @@ reviewBtn.addEventListener("click", () => {
 clearHistoryBtn.addEventListener("click", () => {
   localStorage.removeItem(HISTORY_KEY);
   renderHistory();
-});
-
-exportHistoryBtn.addEventListener("click", () => {
-  const history = loadHistory();
-  const payload = {
-    exportedAt: new Date().toISOString(),
-    count: history.length,
-    items: history,
-  };
-  const blob = new Blob([JSON.stringify(payload, null, 2)], {
-    type: "application/json",
-  });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "gugudan-history.json";
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
 });
 
 toggleBtns.forEach((btn) => {
@@ -1531,7 +1988,11 @@ toggleBtns.forEach((btn) => {
       skipBtn.classList.toggle("hidden", state.session === "challenge");
     }
     updateModeButtons();
-    startQuiz();
+    if (state.hasStarted) {
+      startQuiz();
+      return;
+    }
+    renderIdleState();
   });
 });
 
@@ -1539,6 +2000,9 @@ languageSelect.addEventListener("change", () => {
   state.lang = languageSelect.value;
   localStorage.setItem(LANG_KEY, state.lang);
   applyTranslations();
+  if (!state.hasStarted) {
+    renderIdleState();
+  }
   renderHistory();
   renderVoiceSelect();
   speakQuestion(true);
@@ -1551,7 +2015,7 @@ state.lang = localStorage.getItem(LANG_KEY) || "ko";
 languageSelect.value = state.lang;
 timeLimitValue.textContent = `${timeLimitRange.value}${t("seconds")}`;
 challengeControl.classList.add("hidden");
-startQuiz();
+renderIdleState();
 renderHistory();
 applyTranslations();
 loadVoices();
@@ -1577,6 +2041,7 @@ ttsVoiceSelect.addEventListener("change", () => {
 });
 
 document.addEventListener("keydown", (event) => {
+  if (state.isPaused) return;
   if (result.style.display === "block") return;
   const key = event.key;
   if (!["1", "2", "3", "4"].includes(key)) return;

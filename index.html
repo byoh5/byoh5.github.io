@@ -16,7 +16,10 @@
       <section class="hero">
         <div class="badge" data-i18n="badge">오늘의 구구단</div>
         <h1 data-i18n="title">구구단 퀴즈 놀이터</h1>
-        <p data-i18n="subtitle">짧고 재미있는 문제로 2~9단을 자연스럽게 익혀요. 맞히면 별이 쌓여요!</p>
+        <p data-i18n="subtitle">새로운 시대의 구구단 학습법, 게임처럼 몰입하고 기록으로 성장해요!</p>
+        <p class="hero-story" data-i18n="heroStory">
+          우리 아이의 구구단 공부를 위해 아빠가 AI로 직접 만들었어요. 전 세계 모든 아이들이 구구단을 쉽게 외울 수 있도록요.
+        </p>
       </section>
 
       <section class="panel">
@@ -57,6 +60,7 @@
             <div class="toggle" role="tablist">
               <button class="toggle-btn active" data-session="normal" data-i18n="sessionNormal">기본</button>
               <button class="toggle-btn" data-session="challenge" data-i18n="sessionChallenge">도전</button>
+              <button class="toggle-btn" data-session="wrong" data-i18n="sessionWrong">오답 집중</button>
             </div>
           </div>
           <div class="control" id="challengeControl">
@@ -70,9 +74,13 @@
           <div class="control">
             <label data-i18n="countLabel">문제 수</label>
             <div class="range">
-              <input id="countRange" type="range" min="5" max="20" value="10" />
-              <span id="countValue">10</span>
+              <input id="countRange" type="range" min="20" max="100" value="20" />
+              <span id="countValue">20</span>
             </div>
+          </div>
+          <div class="control start-control">
+            <button id="startBtn" class="primary start-btn" type="button">학습 시작</button>
+            <p class="small" data-i18n="startHelp">설정을 고른 뒤 학습 시작 버튼을 눌러 주세요.</p>
           </div>
           <div class="control">
             <label data-i18n="ttsLabel">문제 읽어주기</label>
@@ -98,7 +106,7 @@
 
           <div class="card" id="card">
             <div class="card-top">
-              <span id="progress">1 / 10</span>
+              <span id="progress">1 / 20</span>
               <span id="timer">00:00</span>
             </div>
             <div class="question" id="question">2 × 3 = ?</div>
@@ -106,6 +114,7 @@
             <div class="answers" id="answers"></div>
             <div class="feedback" id="feedback"></div>
             <div class="actions">
+              <button id="pauseBtn" class="ghost" data-i18n="pauseBtn">잠시 멈춤</button>
               <button id="skipBtn" class="ghost" data-i18n="skipBtn">모르면 넘어가기</button>
               <button id="nextBtn" class="primary" disabled data-i18n="nextBtn">다음 문제</button>
             </div>
@@ -129,7 +138,6 @@
           <div class="history-header">
             <h2 data-i18n="historyTitle">학습 이력</h2>
             <div class="history-actions">
-              <button id="exportHistoryBtn" class="ghost small" data-i18n="exportBtn">JSON 저장</button>
               <button id="clearHistoryBtn" class="ghost small" data-i18n="clearBtn">기록 삭제</button>
             </div>
           </div>
@@ -153,6 +161,14 @@
           <div class="history-list" id="challengeWrongList"></div>
         </div>
       </section>
+
+      <footer class="site-footer">
+        <div class="site-footer-links">
+          <a href="about.html" data-i18n="footerAbout">사이트 소개</a>
+          <a href="privacy.html" data-i18n="footerPrivacy">개인정보처리방침</a>
+          <a href="contact.html" data-i18n="footerContact">문의하기</a>
+        </div>
+      </footer>
     </main>
 
     <div class="bg-shape shape-1"></div>
