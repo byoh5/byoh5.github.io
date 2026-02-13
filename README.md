@@ -1,47 +1,45 @@
-# 구구단 퀴즈 놀이터
+# Times Table Quiz Playground
 
-아이들이 재미있게 구구단(2~9단, 옵션으로 20단까지)을 외울 수 있도록 만든 웹 기반 퀴즈 놀이터입니다. 정답률/속도/오답 집중 학습/도전 모드/TTS/다국어를 포함합니다.
+A web-based quiz playground designed to help kids memorize times tables (2-9, optionally up to 20) in a fun way. It includes accuracy/speed tracking, mistake-focused practice, challenge mode, TTS, and multilingual UI support.
 
-## 주요 기능
-- **기본/도전/오답 집중 모드**: 도전 모드 시간 제한(1~5초), 오답 기록 기반 집중 복습
-- **오답 가중 문제 구성**: 기록이 충분할 때(오답 10개 이상) 오답 비중 증가
-- **자동 진행**: 답 선택 후 자동 다음 문제
-- **다국어 UI**: 한국어/영어/중국어/일본어/스페인어/프랑스어/독일어/포르투갈어/베트남어/태국어/인도네시아어
-- **TTS 읽어주기**: 언어별 음성 선택 + 자동 읽기
-- **학습 이력**: 최근 30회 기록 저장, 그래프, 자주 틀리는 문제 리포트
-- **키보드 입력**: 숫자키 1~4로 빠른 답변
-- **JSON 내보내기**: 학습 기록 다운로드
+## Key Features
+- **Normal / Challenge / Mistake Focus modes**: Challenge mode applies a per-question time limit (1-5 seconds), and Mistake Focus mode builds practice from saved wrong answers.
+- **Weighted wrong-answer generation**: Increases the proportion of frequently missed questions when enough history is available (10+ wrong answers).
+- **Auto progression**: Automatically moves to the next question after an answer is selected.
+- **Multilingual UI**: Korean / English / Chinese / Japanese / Spanish / French / German / Portuguese / Vietnamese / Thai / Indonesian
+- **TTS read-aloud**: Per-language voice selection with optional auto-read.
+- **Learning history**: Stores the latest 30 sessions, with a growth chart and frequently missed question report.
+- **Keyboard input**: Quick answers with number keys `1-4`.
 
-## 실행 방법
-1. 브라우저에서 `index.html`을 엽니다.
-2. 언어, 단, 모드, 시간 제한 등을 설정합니다.
+## How to Run
+1. Open `index.html` in your browser.
+2. Configure language, tables, mode, time limit, and other options.
 
-> 로컬 서버 없이 파일만으로도 동작합니다.
+> It runs as static files without a local server.
 
-## 배포( GitHub Pages )
-- 이 프로젝트는 `byoh5.github.io` 저장소의 루트에 올려야 합니다.
-- 즉, `byoh5.github.io` 리포지토리의 최상위에 `index.html`, `style.css`, `script.js`를 배치하세요.
+## Deployment (GitHub Pages)
+- Deploy this project to the root of the `byoh5.github.io` repository.
+- Place `index.html`, `style.css`, and `script.js` at the top level of that repository.
 
-## 학습 이력 저장
-- `localStorage`에 최근 30회 기록 저장
-- 내보내기 버튼으로 `gugudan-history.json` 다운로드
+## Learning History Storage
+- Stores up to 30 recent records in `localStorage`.
 
-## TTS(읽어주기)
-- Web Speech API 사용
-- 언어별로 기본 구글 음성 우선 선택
-- 드롭다운에서 원하는 음성 변경 가능
+## TTS (Read Aloud)
+- Uses the Web Speech API.
+- Prioritizes default Google voices per language when available.
+- Voice can be changed from the dropdown.
 
-## 파일 구성
-- `index.html` : UI 구조
-- `style.css` : 스타일
-- `script.js` : 동작 로직
-- `PROGRAM_SPEC.md` : 상세 명세서
+## File Structure
+- `index.html`: UI structure
+- `style.css`: styles
+- `script.js`: runtime logic
+- `PROGRAM_SPEC.md`: detailed spec
 
-## 커스터마이즈 힌트
-- 문제 수 범위(기본 20, 최대 100): `index.html`의 range 설정
-- 오답 비중: `script.js`의 `NORMAL_WRONG_RATIO`, `CHALLENGE_WRONG_RATIO`
-- 오답 최소 기준: `WRONG_POOL_MIN`
-- 자동 진행 시간: `setTimeout` 지연값
+## Customization Tips
+- Question count range (default `20`, max `100`): range input settings in `index.html`
+- Wrong-answer ratios: `NORMAL_WRONG_RATIO`, `CHALLENGE_WRONG_RATIO` in `script.js`
+- Minimum wrong-pool threshold: `WRONG_POOL_MIN`
+- Auto-advance timing: `setTimeout` delay values
 
-## 라이선스
-내부 용도 또는 교육용으로 자유롭게 사용 가능합니다.
+## License
+Free to use for internal or educational purposes.
