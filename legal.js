@@ -5,6 +5,7 @@ const page = document.body.dataset.page;
 const I18N = {
   ko: {
     languageLabel: "언어",
+    siteBrand: "구구단 퀴즈 놀이터",
     linkHome: "홈",
     linkAbout: "사이트 소개",
     linkPrivacy: "개인정보처리방침",
@@ -168,6 +169,7 @@ const I18N = {
 
   en: {
     languageLabel: "Language",
+    siteBrand: "Times Table Quiz Playground",
     linkHome: "Home",
     linkAbout: "About",
     linkPrivacy: "Privacy Policy",
@@ -334,6 +336,7 @@ const I18N = {
 
   zh: {
     languageLabel: "语言",
+    siteBrand: "九九乘法测验乐园",
     linkHome: "首页",
     linkAbout: "网站介绍",
     linkPrivacy: "隐私政策",
@@ -407,6 +410,7 @@ const I18N = {
 
   ja: {
     languageLabel: "言語",
+    siteBrand: "九九クイズ広場",
     linkHome: "ホーム",
     linkAbout: "サイト紹介",
     linkPrivacy: "プライバシーポリシー",
@@ -480,6 +484,7 @@ const I18N = {
 
   es: {
     languageLabel: "Idioma",
+    siteBrand: "Parque de Quiz de Tablas",
     linkHome: "Inicio",
     linkAbout: "Acerca del sitio",
     linkPrivacy: "Política de privacidad",
@@ -553,6 +558,7 @@ const I18N = {
 
   fr: {
     languageLabel: "Langue",
+    siteBrand: "Terrain de Quiz des Tables",
     linkHome: "Accueil",
     linkAbout: "À propos",
     linkPrivacy: "Politique de confidentialité",
@@ -626,6 +632,7 @@ const I18N = {
 
   de: {
     languageLabel: "Sprache",
+    siteBrand: "Einmaleins-Quiz Spielplatz",
     linkHome: "Start",
     linkAbout: "Über die Website",
     linkPrivacy: "Datenschutz",
@@ -699,6 +706,7 @@ const I18N = {
 
   pt: {
     languageLabel: "Idioma",
+    siteBrand: "Parque de Quiz da Tabuada",
     linkHome: "Início",
     linkAbout: "Sobre o site",
     linkPrivacy: "Política de privacidade",
@@ -772,6 +780,7 @@ const I18N = {
 
   vi: {
     languageLabel: "Ngôn ngữ",
+    siteBrand: "Sân chơi Quiz Cửu Chương",
     linkHome: "Trang chủ",
     linkAbout: "Giới thiệu trang",
     linkPrivacy: "Chính sách riêng tư",
@@ -845,6 +854,7 @@ const I18N = {
 
   th: {
     languageLabel: "ภาษา",
+    siteBrand: "สนามเด็กเล่นควิซตารางคูณ",
     linkHome: "หน้าแรก",
     linkAbout: "เกี่ยวกับเว็บไซต์",
     linkPrivacy: "นโยบายความเป็นส่วนตัว",
@@ -918,6 +928,7 @@ const I18N = {
 
   id: {
     languageLabel: "Bahasa",
+    siteBrand: "Taman Kuis Perkalian",
     linkHome: "Beranda",
     linkAbout: "Tentang situs",
     linkPrivacy: "Kebijakan privasi",

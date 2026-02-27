@@ -81,6 +81,7 @@ const VOICE_KEY_PREFIX = "gugudan-voice-";
 const I18N = {
   ko: {
     badge: "오늘의 구구단",
+    siteBrand: "구구단 퀴즈 놀이터",
     title: "구구단 퀴즈 놀이터",
     subtitle: "새로운 시대의 구구단 학습법, 게임처럼 몰입하고 기록으로 성장해요!",
     heroStory: "우리 아이의 구구단 공부를 위해 아빠가 AI로 직접 만들었어요.\n전 세계 모든 아이들이 구구단을 쉽게 외울 수 있도록요.",
@@ -178,6 +179,7 @@ const I18N = {
   },
   en: {
     badge: "Today's Times Tables",
+    siteBrand: "Times Table Quiz Playground",
     title: "Times Table Quiz Playground",
     subtitle: "A new-era way to master times tables: game-like focus powered by progress data.",
     heroStory: "Made directly with AI by a dad to help his own child study times tables, so kids everywhere can learn them with ease.",
@@ -276,6 +278,7 @@ const I18N = {
   },
   zh: {
     badge: "今日九九表",
+    siteBrand: "九九乘法测验乐园",
     title: "九九乘法测验乐园",
     subtitle: "面向新时代的九九学习法：像游戏一样投入，用学习记录持续进步。",
     heroStory: "这是爸爸为了自己孩子学习九九乘法，用AI亲自制作的，希望全世界的孩子都能轻松掌握。",
@@ -374,6 +377,7 @@ const I18N = {
   },
   ja: {
     badge: "今日の九九",
+    siteBrand: "九九クイズ広場",
     title: "九九クイズ広場",
     subtitle: "新しい時代の九九学習法。ゲーム感覚で集中し、記録で成長できます。",
     heroStory: "わが子の九九学習のために、父親がAIで直接作りました。世界中の子どもが九九をやさしく覚えられるように。",
@@ -472,6 +476,7 @@ const I18N = {
   },
   es: {
     badge: "Tablas del día",
+    siteBrand: "Parque de Quiz de Tablas",
     title: "Parque de Quiz de Tablas",
     subtitle: "Un método de tablas para la nueva era: concentración tipo juego y progreso medible.",
     heroStory: "Un papá lo creó directamente con IA para ayudar a su propio hijo con las tablas, para que niños de todo el mundo las aprendan con facilidad.",
@@ -570,6 +575,7 @@ const I18N = {
   },
   fr: {
     badge: "Tables du jour",
+    siteBrand: "Terrain de Quiz des Tables",
     title: "Terrain de Quiz des Tables",
     subtitle: "Une méthode de tables pour la nouvelle ère : immersion ludique et progression mesurable.",
     heroStory: "Créé directement avec l'IA par un papa pour aider son propre enfant à apprendre les tables, afin que les enfants du monde entier y arrivent facilement.",
@@ -668,6 +674,7 @@ const I18N = {
   },
   de: {
     badge: "Heutige Einmaleins",
+    siteBrand: "Einmaleins-Quiz Spielplatz",
     title: "Einmaleins-Quiz Spielplatz",
     subtitle: "Eine Einmaleins-Lernmethode für die neue Zeit: spielerischer Fokus und messbarer Fortschritt.",
     heroStory: "Ein Vater hat es mit KI direkt für das Einmaleins-Lernen seines eigenen Kindes gebaut, damit Kinder weltweit leichter lernen können.",
@@ -766,6 +773,7 @@ const I18N = {
   },
   pt: {
     badge: "Tabuadas do dia",
+    siteBrand: "Parque de Quiz da Tabuada",
     title: "Parque de Quiz da Tabuada",
     subtitle: "Um novo jeito de aprender tabuada para esta era: foco de jogo e progresso visível.",
     heroStory: "Um pai criou isso diretamente com IA para ajudar o próprio filho a estudar tabuada, para que crianças do mundo todo aprendam com mais facilidade.",
@@ -864,6 +872,7 @@ const I18N = {
   },
   vi: {
     badge: "Bảng cửu chương hôm nay",
+    siteBrand: "Sân chơi Quiz Cửu Chương",
     title: "Sân chơi Quiz Cửu Chương",
     subtitle: "Phương pháp học bảng cửu chương cho thời đại mới: tập trung như chơi game và tiến bộ rõ ràng.",
     heroStory: "Đây là sản phẩm do người cha tự làm trực tiếp bằng AI để giúp chính con mình học bảng cửu chương, để trẻ em khắp thế giới cũng học dễ hơn.",
@@ -962,6 +971,7 @@ const I18N = {
   },
   th: {
     badge: "ตารางคูณวันนี้",
+    siteBrand: "สนามเด็กเล่นควิซตารางคูณ",
     title: "สนามเด็กเล่นควิซตารางคูณ",
     subtitle: "วิธีเรียนตารางคูณยุคใหม่: สนุกแบบเกมและเห็นพัฒนาการได้ชัดเจน",
     heroStory: "พ่อคนหนึ่งสร้างสิ่งนี้ด้วย AI โดยตรงเพื่อช่วยลูกของตัวเองเรียนตารางคูณ เพื่อให้เด็กทั่วโลกเรียนได้ง่ายขึ้น",
@@ -1060,6 +1070,7 @@ const I18N = {
   },
   id: {
     badge: "Tabel hari ini",
+    siteBrand: "Taman Kuis Perkalian",
     title: "Taman Kuis Perkalian",
     subtitle: "Metode belajar perkalian untuk era baru: fokus seperti bermain game dengan progres yang terukur.",
     heroStory: "Seorang ayah membuatnya langsung dengan AI untuk membantu anaknya sendiri belajar perkalian, agar anak-anak di seluruh dunia bisa belajar lebih mudah.",
