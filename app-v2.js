@@ -76,7 +76,6 @@ const el = {
   keypadWrap: document.getElementById("keypadWrap"),
   answerDisplay: document.getElementById("answerDisplay"),
   keypadGrid: document.getElementById("keypadGrid"),
-  submitBtn: document.getElementById("submitBtn"),
   choicesWrap: document.getElementById("choicesWrap"),
   choicesGrid: document.getElementById("choicesGrid"),
 
@@ -885,7 +884,6 @@ function bindEvents() {
   el.quickStartBtn.addEventListener("click", startGame);
   el.startCustomBtn.addEventListener("click", startGame);
 
-  el.submitBtn.addEventListener("click", submitCurrentAnswer);
   el.pauseBtn.addEventListener("click", pauseGame);
   el.resumeBtn.addEventListener("click", resumeGame);
   el.skipBtn.addEventListener("click", () => evaluateAnswer(null, { skipped: true, timeout: false }));
