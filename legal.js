@@ -485,6 +485,8 @@ const I18N = {
     linkPrivacy: "Política de privacidad",
     linkContact: "Contacto",
     linkQuizStart: "Iniciar quiz",
+    linkGuide: "Guía de estudio",
+    linkTerms: "Términos",
 
     aboutTitleTag: "Acerca del sitio | Parque de Quiz de Tablas",
     aboutMeta: "Página de información del Parque de Quiz de Tablas",
@@ -556,6 +558,8 @@ const I18N = {
     linkPrivacy: "Politique de confidentialité",
     linkContact: "Contact",
     linkQuizStart: "Démarrer le quiz",
+    linkGuide: "Guide d'apprentissage",
+    linkTerms: "Conditions",
 
     aboutTitleTag: "À propos | Terrain de Quiz des Tables",
     aboutMeta: "Page de présentation du Terrain de Quiz des Tables",
@@ -627,6 +631,8 @@ const I18N = {
     linkPrivacy: "Datenschutz",
     linkContact: "Kontakt",
     linkQuizStart: "Quiz starten",
+    linkGuide: "Lernleitfaden",
+    linkTerms: "Bedingungen",
 
     aboutTitleTag: "Über die Website | Einmaleins-Quiz Spielplatz",
     aboutMeta: "Informationsseite des Einmaleins-Quiz Spielplatzes",
@@ -698,6 +704,8 @@ const I18N = {
     linkPrivacy: "Política de privacidade",
     linkContact: "Contato",
     linkQuizStart: "Iniciar quiz",
+    linkGuide: "Guia de estudo",
+    linkTerms: "Termos",
 
     aboutTitleTag: "Sobre o site | Parque de Quiz da Tabuada",
     aboutMeta: "Página de apresentação do Parque de Quiz da Tabuada",
@@ -769,6 +777,8 @@ const I18N = {
     linkPrivacy: "Chính sách riêng tư",
     linkContact: "Liên hệ",
     linkQuizStart: "Bắt đầu quiz",
+    linkGuide: "Hướng dẫn học",
+    linkTerms: "Điều khoản",
 
     aboutTitleTag: "Giới thiệu | Sân chơi Quiz Cửu Chương",
     aboutMeta: "Trang giới thiệu Sân chơi Quiz Cửu Chương",
@@ -840,6 +850,8 @@ const I18N = {
     linkPrivacy: "นโยบายความเป็นส่วนตัว",
     linkContact: "ติดต่อ",
     linkQuizStart: "เริ่มควิซ",
+    linkGuide: "คู่มือการเรียนรู้",
+    linkTerms: "ข้อกำหนด",
 
     aboutTitleTag: "เกี่ยวกับเว็บไซต์ | สนามเด็กเล่นควิซตารางคูณ",
     aboutMeta: "หน้าแนะนำบริการสนามเด็กเล่นควิซตารางคูณ",
@@ -911,6 +923,8 @@ const I18N = {
     linkPrivacy: "Kebijakan privasi",
     linkContact: "Kontak",
     linkQuizStart: "Mulai kuis",
+    linkGuide: "Panduan belajar",
+    linkTerms: "Ketentuan",
 
     aboutTitleTag: "Tentang Situs | Taman Kuis Perkalian",
     aboutMeta: "Halaman informasi Taman Kuis Perkalian",
