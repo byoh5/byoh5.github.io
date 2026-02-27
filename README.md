@@ -20,6 +20,7 @@ No backend or build step is required.
 - `index.html`: Main quiz app
 - `app-v2.css`: Main quiz v2 UI style
 - `app-v2.js`: Main quiz v2 runtime
+- `legal-v2.css`: Legal/about pages visual theme extension
 - `guide.html`: Learning guide and FAQ
 - `about.html`: Site/service overview
 - `terms.html`: Terms of service
