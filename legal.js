@@ -339,6 +339,8 @@ const I18N = {
     linkPrivacy: "隐私政策",
     linkContact: "联系我们",
     linkQuizStart: "开始测验",
+    linkGuide: "学习指南",
+    linkTerms: "使用条款",
 
     aboutTitleTag: "网站介绍 | 九九乘法测验乐园",
     aboutMeta: "九九乘法测验乐园介绍页面",
@@ -410,6 +412,8 @@ const I18N = {
     linkPrivacy: "プライバシーポリシー",
     linkContact: "お問い合わせ",
     linkQuizStart: "クイズ開始",
+    linkGuide: "学習ガイド",
+    linkTerms: "利用規約",
 
     aboutTitleTag: "サイト紹介 | 九九クイズ広場",
     aboutMeta: "九九クイズ広場の紹介ページ",
