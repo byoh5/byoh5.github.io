@@ -1708,7 +1708,7 @@ const I18N = {
     termsSection7Body: "Pertanyaan mengenai ketentuan ini dapat dikirimkan ke alamat email di bawah ini.",
   },
 
-};;
+};
 
 const state = {
   lang: "ko",
