@@ -1,45 +1,60 @@
 # Times Table Quiz Playground
 
-A web-based quiz playground designed to help kids memorize times tables (2-9, optionally up to 20) in a fun way. It includes accuracy/speed tracking, mistake-focused practice, challenge mode, TTS, and multilingual UI support.
+A static web quiz service to help learners memorize multiplication tables through repetition, challenge timing, and mistake-focused review.
 
-## Key Features
-- **Normal / Challenge / Mistake Focus modes**: Challenge mode applies a per-question time limit (1-5 seconds), and Mistake Focus mode builds practice from saved wrong answers.
-- **Weighted wrong-answer generation**: Increases the proportion of frequently missed questions when enough history is available (10+ wrong answers).
-- **Auto progression**: Automatically moves to the next question after an answer is selected.
-- **Multilingual UI**: Korean / English / Chinese / Japanese / Spanish / French / German / Portuguese / Vietnamese / Thai / Indonesian
-- **TTS read-aloud**: Per-language voice selection with optional auto-read.
-- **Learning history**: Stores the latest 30 sessions, with a growth chart and frequently missed question report.
-- **Keyboard input**: Quick answers with number keys `1-4`.
+## Features
+- Normal / Challenge / Mistake Focus learning modes
+- Accuracy tracking + per-question response time tracking
+- Frequently missed question analysis
+- Multilingual UI (11 languages)
+- Browser TTS read-aloud support
+- Local history (up to 30 sessions) with chart
 
-## How to Run
-1. Open `index.html` in your browser.
-2. Configure language, tables, mode, time limit, and other options.
+## Run Locally
+1. Open `index.html` in any modern browser.
+2. Select language/table/mode and start learning.
 
-> It runs as static files without a local server.
+No backend or build step is required.
 
-## Deployment (GitHub Pages)
-- Deploy this project to the root of the `byoh5.github.io` repository.
-- Place `index.html`, `style.css`, and `script.js` at the top level of that repository.
+## Pages
+- `index.html`: Main quiz app
+- `guide.html`: Learning guide and FAQ
+- `about.html`: Site/service overview
+- `terms.html`: Terms of service
+- `privacy.html`: Privacy policy
+- `contact.html`: Contact channel
+- `ads.txt`: Authorized Digital Sellers declaration
+- `robots.txt`: Crawl policy + sitemap location
+- `sitemap.xml`: URL discovery map
+- `style.css`: Shared style
+- `script.js`: Quiz runtime
+- `legal.js`: Legal/about page i18n runtime
 
-## Learning History Storage
-- Stores up to 30 recent records in `localStorage`.
+## GitHub Pages Deployment
+- Deploy to the root of `byoh5.github.io`.
+- Keep all HTML/CSS/JS files at repository top level.
 
-## TTS (Read Aloud)
-- Uses the Web Speech API.
-- Prioritizes default Google voices per language when available.
-- Voice can be changed from the dropdown.
+## AdSense Readiness Checklist
+Before submitting/reviewing in AdSense, confirm:
+1. `ads.txt` is publicly accessible at `/ads.txt`.
+2. `robots.txt` and `sitemap.xml` are publicly accessible.
+3. All policy pages are reachable from every page footer/header.
+4. `meta name="google-adsense-account"` is present on each page.
+5. Contact and operator info are visible (`about.html`, `contact.html`).
+6. Privacy/terms clearly disclose ads, cookies, and child-related guidance.
+7. `canonical` URLs match your real production domain.
 
-## File Structure
-- `index.html`: UI structure
-- `style.css`: styles
-- `script.js`: runtime logic
-- `PROGRAM_SPEC.md`: detailed spec
-
-## Customization Tips
-- Question count range (default `20`, max `100`): range input settings in `index.html`
-- Wrong-answer ratios: `NORMAL_WRONG_RATIO`, `CHALLENGE_WRONG_RATIO` in `script.js`
-- Minimum wrong-pool threshold: `WRONG_POOL_MIN`
-- Auto-advance timing: `setTimeout` delay values
+## Important
+This repository currently uses `https://byoh5.github.io` in canonical/sitemap URLs.
+If you deploy to another domain, update URLs in:
+- `index.html`
+- `about.html`
+- `contact.html`
+- `privacy.html`
+- `guide.html`
+- `terms.html`
+- `robots.txt`
+- `sitemap.xml`
 
 ## License
 Free to use for internal or educational purposes.
