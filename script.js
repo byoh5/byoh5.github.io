@@ -148,9 +148,30 @@ const I18N = {
     wrongCount: "{count}번",
     wrongCountFull: "{count}번 틀림",
     danSuffix: "단",
+    navGuide: "학습 가이드",
+    navTerms: "이용약관",
     footerAbout: "사이트 소개",
     footerPrivacy: "개인정보처리방침",
     footerContact: "문의하기",
+    homeQualityTitle: "구구단 퀴즈 놀이터가 학습에 도움이 되는 이유",
+    homeQualityP1:
+      "이 서비스는 단순히 문제를 무작위로 보여주는 퀴즈가 아니라, 오답 복습, 답변 속도 확인, 학습 이력 시각화를 함께 제공하도록 설계했습니다.",
+    homeQualityP2:
+      "학습 과정에서는 아는 것과 빠르게 맞히는 것의 차이가 크기 때문에, 기본 모드와 챌린지 모드를 분리해 정확도와 속도를 따로 훈련할 수 있게 했습니다.",
+    homeTipsTitle: "부모와 교사를 위한 권장 사용법",
+    homeTips1: "하루 10~15분씩 짧게, 주 5회 이상 반복하는 방식을 권장합니다.",
+    homeTips2: "정답률 90% 이상이 3회 이상 유지되면 다음 단으로 확장하세요.",
+    homeTips3: "오답 집중 모드는 취약한 문제를 빠르게 보완하는 데 가장 효과적입니다.",
+    homeTips4: "학습 시간은 길게 끌지 말고, 성취감이 남을 때 종료하는 편이 지속성에 유리합니다.",
+    homeTipsLinkPrefix: "더 자세한 운영 팁은",
+    homeTipsLinkSuffix: "에서 확인할 수 있습니다.",
+    homePolicyTitle: "광고 및 정책 안내",
+    homePolicyP1Prefix: "본 사이트는 무료 운영을 위해 Google AdSense를 사용할 수 있으며, 광고·개인정보 처리 기준은",
+    homePolicyP1Middle: "과",
+    homePolicyP1Suffix: "에서 투명하게 공개합니다.",
+    homePolicyP2Prefix: "사이트 운영자 정보와 문의 채널은",
+    homePolicyP2Middle: "와",
+    homePolicyP2Suffix: "페이지에서 확인할 수 있습니다.",
     chartAria: "정답률 그래프",
     applause: ["멋져요!", "천재네!", "완벽해요!", "짱이에요!", "정답! 잘했어요!"],
     gentle: ["괜찮아요, 다시!", "조금만 더!", "다음엔 맞힐 수 있어요!"],
@@ -224,9 +245,31 @@ const I18N = {
     wrongCount: "{count}x",
     wrongCountFull: "{count} wrong",
     danSuffix: "x",
+    navGuide: "Learning Guide",
+    navTerms: "Terms",
     footerAbout: "About",
     footerPrivacy: "Privacy Policy",
     footerContact: "Contact",
+    homeQualityTitle: "Why This Quiz Helps Learning",
+    homeQualityP1:
+      "This service is not just a random quiz generator. It is designed to combine mistake review, response-speed tracking, and learning-history visualization.",
+    homeQualityP2:
+      "In practice, knowing an answer and answering quickly are different skills. That is why Normal mode and Challenge mode are separated for focused training.",
+    homeTipsTitle: "Recommended Use for Parents and Teachers",
+    homeTips1: "Keep sessions short (10-15 minutes), but repeat at least 5 times a week.",
+    homeTips2: "If accuracy stays above 90% for three sessions, move to the next table range.",
+    homeTips3: "Mistake Focus mode is the most effective way to fix weak questions quickly.",
+    homeTips4: "Do not force long sessions. Ending while motivation is high improves consistency.",
+    homeTipsLinkPrefix: "You can find more operation tips in the",
+    homeTipsLinkSuffix: "page.",
+    homePolicyTitle: "Ads and Policy Notice",
+    homePolicyP1Prefix:
+      "This site may use Google AdSense to stay free, and ad/privacy handling rules are transparently documented in the",
+    homePolicyP1Middle: "and",
+    homePolicyP1Suffix: "pages.",
+    homePolicyP2Prefix: "Operator information and contact channels are available on the",
+    homePolicyP2Middle: "and",
+    homePolicyP2Suffix: "pages.",
     chartAria: "Accuracy chart",
     applause: ["Great!", "Genius!", "Perfect!", "Awesome!", "Correct!"],
     gentle: ["It's okay, try again!", "Almost there!", "You'll get it next time!"],
@@ -919,7 +962,7 @@ const I18N = {
 
 function t(key, vars = {}) {
   const pack = I18N[state.lang] || I18N.ko;
-  const template = pack[key] ?? I18N.ko[key] ?? key;
+  const template = pack[key] ?? I18N.en[key] ?? I18N.ko[key] ?? key;
   if (Array.isArray(template)) return template;
   return String(template).replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "");
 }
