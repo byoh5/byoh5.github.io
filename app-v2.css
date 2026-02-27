@@ -56,9 +56,10 @@ body.v2-home {
 
 .v2-topbar {
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .v2-tabs {
@@ -67,6 +68,19 @@ body.v2-home {
   border-radius: 999px;
   background: #fff6ea;
   border: 1px solid var(--v2-line);
+}
+
+.v2-lang-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: var(--v2-soft-ink);
+}
+
+.v2-select {
+  width: auto;
+  min-width: 150px;
 }
 
 .v2-tab {

@@ -1,6 +1,22 @@
 const SETTINGS_KEY = "gugudan_v2_settings";
 const SESSIONS_KEY = "gugudan_sessions";
+const LANG_KEY = "gugudan-language";
 const SESSION_LIMIT = 30;
+const I18N = window.APP_V2_I18N || { ko: {} };
+
+const LOCALE_MAP = {
+  ko: "ko-KR",
+  en: "en-US",
+  zh: "zh-CN",
+  ja: "ja-JP",
+  es: "es-ES",
+  fr: "fr-FR",
+  de: "de-DE",
+  pt: "pt-PT",
+  vi: "vi-VN",
+  th: "th-TH",
+  id: "id-ID",
+};
 
 const DEFAULT_SETTINGS = {
   tableMin: 2,
@@ -19,6 +35,7 @@ const DEFAULT_SETTINGS = {
 const state = {
   phase: "start", // start | playing | paused | result
   tab: "learn", // learn | history
+  lang: "ko",
   settings: { ...DEFAULT_SETTINGS },
   sessions: [],
   session: null,
@@ -31,6 +48,7 @@ const el = {
   workspace: document.getElementById("workspace"),
   topBar: document.getElementById("topBar"),
   tabs: Array.from(document.querySelectorAll(".v2-tab")),
+  mainLanguageSelect: document.getElementById("mainLanguageSelect"),
 
   startScreen: document.getElementById("startScreen"),
   playScreen: document.getElementById("playScreen"),
@@ -132,6 +150,58 @@ function deepClone(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
 
+function t(key, vars = {}) {
+  const pack = I18N[state.lang] || I18N.ko || {};
+  const template = pack[key] ?? I18N.en?.[key] ?? I18N.ko?.[key] ?? key;
+  return String(template).replace(/\{(\w+)\}/g, (_, name) => String(vars[name] ?? ""));
+}
+
+function applyTranslations() {
+  document.querySelectorAll("[data-i18n]").forEach((node) => {
+    const key = node.dataset.i18n;
+    node.textContent = t(key);
+  });
+
+  document.querySelectorAll("[data-i18n-meta]").forEach((node) => {
+    const key = node.dataset.i18nMeta;
+    node.setAttribute("content", t(key));
+  });
+
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((node) => {
+    const key = node.dataset.i18nPlaceholder;
+    node.setAttribute("placeholder", t(key));
+  });
+
+  document.title = t("pageTitle");
+  document.documentElement.lang = state.lang;
+}
+
+function getLocale() {
+  return LOCALE_MAP[state.lang] || "en-US";
+}
+
+function getSpeakText(question) {
+  const phraseMap = {
+    ko: `${question.a} 곱하기 ${question.b}`,
+    en: `${question.a} times ${question.b}`,
+    zh: `${question.a} 乘以 ${question.b}`,
+    ja: `${question.a} かける ${question.b}`,
+    es: `${question.a} por ${question.b}`,
+    fr: `${question.a} fois ${question.b}`,
+    de: `${question.a} mal ${question.b}`,
+    pt: `${question.a} vezes ${question.b}`,
+    vi: `${question.a} nhân ${question.b}`,
+    th: `${question.a} คูณ ${question.b}`,
+    id: `${question.a} kali ${question.b}`,
+  };
+  return phraseMap[state.lang] || `${question.a} x ${question.b}`;
+}
+
+function syncAdvancedToggleLabel() {
+  const expanded = el.advancedToggle.getAttribute("aria-expanded") === "true";
+  el.advancedToggle.textContent = expanded ? t("advancedClose") : t("advancedOpen");
+}
+
 function normalizeSettings(next) {
   const merged = { ...DEFAULT_SETTINGS, ...next };
   merged.extendTo20 = Boolean(merged.extendTo20);
@@ -151,15 +221,15 @@ function normalizeSettings(next) {
 
 function modeLabel(mode) {
   const map = {
-    practice: "편하게 연습",
-    challenge: "스피드 도전",
-    mistake: "오답 복습",
+    practice: t("modePracticeTitle"),
+    challenge: t("modeChallengeTitle"),
+    mistake: t("modeMistakeTitle"),
   };
-  return map[mode] || "연습";
+  return map[mode] || t("modePracticeTitle");
 }
 
 function orderLabel(order) {
-  return order === "inOrder" ? "순서대로" : "섞어서";
+  return order === "inOrder" ? t("orderInOrder") : t("orderShuffle");
 }
 
 function saveSettings() {
@@ -175,6 +245,29 @@ function saveSessions() {
   const sliced = state.sessions.slice(-SESSION_LIMIT);
   state.sessions = sliced;
   writeJSON(SESSIONS_KEY, sliced);
+}
+
+function initLanguage() {
+  const saved = localStorage.getItem(LANG_KEY);
+  state.lang = I18N[saved] ? saved : "ko";
+  if (!el.mainLanguageSelect) return;
+
+  el.mainLanguageSelect.value = state.lang;
+  el.mainLanguageSelect.addEventListener("change", () => {
+    const next = el.mainLanguageSelect.value;
+    state.lang = I18N[next] ? next : "ko";
+    localStorage.setItem(LANG_KEY, state.lang);
+    applyTranslations();
+    syncAdvancedToggleLabel();
+    syncSettingUI();
+    buildKeypad();
+    renderTabs();
+    renderHud();
+    renderQuestion();
+    renderResult();
+    renderHistory();
+    renderVisibility();
+  });
 }
 
 function collectMistakePool() {
@@ -270,7 +363,7 @@ function buildQuestions() {
       return questions;
     }
 
-    state.notice = "저장된 오답이 없어 이번 판은 일반 문제로 시작했어요.";
+    state.notice = t("noticeNoMistake");
     return order === "inOrder"
       ? buildSequentialQuestions(totalQuestions, tableMin, tableMax)
       : buildShuffledQuestions(totalQuestions, tableMin, tableMax);
@@ -300,8 +393,8 @@ function getCurrentQuestion() {
 function updateMissionCard() {
   const { tableMin, tableMax, totalQuestions, order, mode } = state.settings;
   const bonus = totalQuestions + (mode === "challenge" ? 5 : mode === "mistake" ? 3 : 0);
-  el.missionSummary.textContent = `${tableMin}~${tableMax}단 · ${totalQuestions}문제 · ${orderLabel(order)}`;
-  el.missionMeta.textContent = `${modeLabel(mode)} · 목표 별 +${bonus}`;
+  el.missionSummary.textContent = `${tableMin}~${tableMax}${t("unitDan")} · ${totalQuestions}${t("unitQuestion")} · ${orderLabel(order)}`;
+  el.missionMeta.textContent = `${modeLabel(mode)} · ${t("goalStars")} +${bonus}`;
 }
 
 function syncSettingUI() {
@@ -312,7 +405,7 @@ function syncSettingUI() {
   el.tableMaxRange.max = String(maxDan);
   el.tableMinRange.value = String(s.tableMin);
   el.tableMaxRange.value = String(s.tableMax);
-  el.tableRangeLabel.textContent = `${s.tableMin} ~ ${s.tableMax}단`;
+  el.tableRangeLabel.textContent = `${s.tableMin} ~ ${s.tableMax}${t("unitDan")}`;
 
   el.countButtons.forEach((btn) => {
     btn.classList.toggle("active", Number(btn.dataset.count) === s.totalQuestions);
@@ -330,9 +423,9 @@ function syncSettingUI() {
   el.extendToggle.checked = s.extendTo20;
   el.answerUISelect.value = s.answerUI;
   el.heartsRange.value = String(s.hearts);
-  el.heartsValue.textContent = `${s.hearts}개`;
+  el.heartsValue.textContent = `${s.hearts}${t("unitCount")}`;
   el.timeLimitRange.value = String(s.timeLimitSec);
-  el.timeLimitValue.textContent = `${s.timeLimitSec}초`;
+  el.timeLimitValue.textContent = `${s.timeLimitSec}${t("unitSecond")}`;
 
   updateMissionCard();
 }
@@ -369,22 +462,22 @@ function renderHud() {
     const text = Array.from({ length: totalHearts }, (_, i) => (i < state.session.heartsLeft ? "❤" : "♡")).join("");
     el.hudHearts.textContent = text;
   } else {
-    el.hudHearts.textContent = "❤ 연습";
+    el.hudHearts.textContent = `❤ ${t("hudPractice")}`;
   }
 
   el.hudProgress.textContent = `${idx} / ${total}`;
   el.hudStars.textContent = `⭐ ${stars}`;
   el.hudProgressBar.style.width = `${ratio.toFixed(2)}%`;
-  el.hudCombo.textContent = `콤보 x${combo}`;
+  el.hudCombo.textContent = `${t("hudCombo")} x${combo}`;
 
   const elapsed = getElapsedSec();
-  el.hudTimer.textContent = `총 ${formatDuration(elapsed)}`;
+  el.hudTimer.textContent = formatDuration(elapsed);
 
   if (state.settings.mode === "challenge") {
     const remain = getQuestionRemainSec();
-    el.hudCountdown.textContent = `제한 ${remain.toFixed(1)}초`;
+    el.hudCountdown.textContent = `${t("hudLimit")} ${remain.toFixed(1)}${t("unitSecond")}`;
   } else {
-    el.hudCountdown.textContent = "제한 없음";
+    el.hudCountdown.textContent = t("hudNoLimit");
   }
 }
 
@@ -445,8 +538,8 @@ function speakCurrentQuestion() {
   const q = getCurrentQuestion();
   if (!q) return;
 
-  const utter = new SpeechSynthesisUtterance(`${q.a} 곱하기 ${q.b}`);
-  utter.lang = "ko-KR";
+  const utter = new SpeechSynthesisUtterance(getSpeakText(q));
+  utter.lang = getLocale();
   utter.rate = 0.95;
   window.speechSynthesis.cancel();
   window.speechSynthesis.speak(utter);
@@ -457,9 +550,9 @@ function applyHint() {
   if (!q || !state.session || state.session.locked) return;
   const tens = Math.floor(q.answer / 10);
   if (tens > 0) {
-    state.lastFeedback = `힌트: 정답은 ${tens}0보다 크고 ${tens + 1}0보다 작아요.`;
+    state.lastFeedback = t("hintRange", { low: `${tens}0`, high: `${tens + 1}0` });
   } else {
-    state.lastFeedback = "힌트: 정답은 한 자리 수예요.";
+    state.lastFeedback = t("hintSingleDigit");
   }
   renderQuestion();
 }
@@ -480,7 +573,7 @@ function evaluateAnswer(answer, { skipped = false, timeout = false } = {}) {
     state.session.stars += 1;
     state.session.combo += 1;
     state.session.bestCombo = Math.max(state.session.bestCombo, state.session.combo);
-    state.lastFeedback = "정답! 잘했어!";
+    state.lastFeedback = t("feedbackCorrect");
   } else {
     state.session.combo = 0;
     if (state.settings.mode === "challenge") {
@@ -488,11 +581,11 @@ function evaluateAnswer(answer, { skipped = false, timeout = false } = {}) {
     }
 
     if (timeout) {
-      state.lastFeedback = "시간 초과! 다음 문제로 넘어갈게.";
+      state.lastFeedback = t("feedbackTimeout");
     } else if (skipped) {
-      state.lastFeedback = "모르면 넘어가기 처리했어.";
+      state.lastFeedback = t("feedbackSkipped");
     } else {
-      state.lastFeedback = `아쉬워! 정답은 ${q.answer}`;
+      state.lastFeedback = t("feedbackWrong", { answer: q.answer });
     }
 
     state.session.mistakes.push({
@@ -584,7 +677,7 @@ function buildKeypad() {
       btn.textContent = "⌫";
       btn.classList.add("action");
     } else if (key === "submit") {
-      btn.textContent = "확인";
+      btn.textContent = t("keySubmit");
       btn.classList.add("action");
     } else {
       btn.textContent = key;
@@ -724,11 +817,11 @@ function renderResult() {
 
   const accuracy = r.total ? Math.round((r.correct / r.total) * 100) : 0;
   if (accuracy >= 90) {
-    el.resultHeadline.textContent = "완벽해! 최고야!";
+    el.resultHeadline.textContent = t("resultHeadlineGreat");
   } else if (accuracy >= 70) {
-    el.resultHeadline.textContent = "좋아, 점점 빨라지고 있어!";
+    el.resultHeadline.textContent = t("resultHeadlineGood");
   } else {
-    el.resultHeadline.textContent = "괜찮아, 다음 판에 더 좋아질 거야!";
+    el.resultHeadline.textContent = t("resultHeadlineTry");
   }
 
   el.resultAccuracy.textContent = `${accuracy}%`;
@@ -743,8 +836,8 @@ function renderHistory() {
   el.mistakeTopList.innerHTML = "";
 
   if (!sessions.length) {
-    el.historyList.innerHTML = '<div class="v2-empty">아직 플레이 기록이 없어요. 한 판 시작해볼까요?</div>';
-    el.mistakeTopList.innerHTML = '<div class="v2-empty">오답 데이터가 쌓이면 TOP 목록이 보여요.</div>';
+    el.historyList.innerHTML = `<div class="v2-empty">${t("historyEmpty")}</div>`;
+    el.mistakeTopList.innerHTML = `<div class="v2-empty">${t("mistakeTopEmpty")}</div>`;
     return;
   }
 
@@ -762,7 +855,7 @@ function renderHistory() {
     item.innerHTML = `
       <div>
         <strong>${modeLabel(session.mode)}</strong>
-        <small>${date.toLocaleDateString("ko-KR")} · 정답률 ${acc}% · ${correct}/${total} · 최고콤보 x${bestCombo}</small>
+        <small>${date.toLocaleDateString(getLocale())} · ${t("metricAccuracy")} ${acc}% · ${correct}/${total} · ${t("metricBestCombo")} x${bestCombo}</small>
       </div>
       <strong>⭐ ${stars}</strong>
     `;
@@ -783,14 +876,14 @@ function renderHistory() {
     .slice(0, 10);
 
   if (!top.length) {
-    el.mistakeTopList.innerHTML = '<div class="v2-empty">아직 누적된 오답이 없어요. 훌륭해요!</div>';
+    el.mistakeTopList.innerHTML = `<div class="v2-empty">${t("mistakeTopPerfect")}</div>`;
     return;
   }
 
   top.forEach(([key, count]) => {
     const item = document.createElement("div");
     item.className = "v2-history-item";
-    item.innerHTML = `<div><strong>${key}</strong><small>자주 틀린 횟수</small></div><strong>${count}회</strong>`;
+    item.innerHTML = `<div><strong>${key}</strong><small>${t("mistakeCountLabel")}</small></div><strong>${count}${t("countTimes")}</strong>`;
     el.mistakeTopList.appendChild(item);
   });
 }
@@ -877,8 +970,8 @@ function bindEvents() {
   el.advancedToggle.addEventListener("click", () => {
     const expanded = el.advancedToggle.getAttribute("aria-expanded") === "true";
     el.advancedToggle.setAttribute("aria-expanded", expanded ? "false" : "true");
-    el.advancedToggle.textContent = expanded ? "고급 설정 열기" : "고급 설정 닫기";
     el.advancedSettings.classList.toggle("v2-hidden", expanded);
+    syncAdvancedToggleLabel();
   });
 
   el.quickStartBtn.addEventListener("click", startGame);
@@ -910,7 +1003,7 @@ function bindEvents() {
   });
 
   el.clearHistoryBtn.addEventListener("click", () => {
-    const confirmed = window.confirm("저장된 기록 30회가 모두 삭제됩니다. 계속할까요?");
+    const confirmed = window.confirm(t("confirmClear"));
     if (!confirmed) return;
     state.sessions = [];
     saveSessions();
@@ -938,10 +1031,16 @@ function bindEvents() {
 function init() {
   state.settings = normalizeSettings(readJSON(SETTINGS_KEY, DEFAULT_SETTINGS));
   state.sessions = getAllSessions();
+  initLanguage();
+  applyTranslations();
 
   buildKeypad();
   bindEvents();
   syncSettingUI();
+  syncAdvancedToggleLabel();
+  if (el.mainLanguageSelect) {
+    el.mainLanguageSelect.value = state.lang;
+  }
   renderTabs();
   renderHistory();
   renderVisibility();
